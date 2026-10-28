@@ -1,4 +1,4 @@
-.PHONY: install lint test pipeline retrain serve mlflow docker up down clean
+.PHONY: install lint test pipeline retrain site serve mlflow docker up down clean
 
 install:            ## install everything (training + dev)
 	pip install -r requirements.txt && pip install --no-deps -e .
@@ -19,6 +19,10 @@ retrain:            ## continuous-training cycle on a drifted, labelled batch
 	churnguard train
 	churnguard promote
 	churnguard summary
+
+site:               ## rebuild the interactive demo from the current champion and check JS/Python parity
+	python scripts/build_site.py
+	node site/parity_test.js
 
 serve:
 	uvicorn churnguard.serving.app:app --reload --port 8000

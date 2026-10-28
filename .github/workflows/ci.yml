@@ -28,6 +28,8 @@ jobs:
         run: ruff check src tests
       - name: Unit + integration tests
         run: pytest --cov=churnguard --cov-report=term --cov-report=xml
+      - name: Demo site parity (JS scorer == Python champion)
+        run: node site/parity_test.js
       - uses: actions/upload-artifact@v4
         with:
           name: coverage

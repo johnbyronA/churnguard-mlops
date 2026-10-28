@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChurnGuard — live churn model</title>
+<meta name="description" content="Play with a production churn model running in your browser: live explanations, business-optimal thresholds, drift monitoring and quality-gated retraining.">
+<meta property="og:title" content="ChurnGuard — a churn model you can play with">
+<meta property="og:description" content="The real LightGBM champion running in your browser: explanations, money-optimal thresholds, drift and continuous training.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --paper:#EEF2F5; --sheet:#FFFFFF; --ink:#16213A; --ink-2:#4A5670; --ink-3:#6F7A90;
+  --rule:#D5DCE5; --well:#E3E8EF;
+  --stay:#2D5BD7; --leave:#CF6420; --stay-soft:#D9E2FA; --leave-soft:#F7DCC9;
+  --neutral:#8792A3; --good:#1E7A4F; --bad:#B4321F;
+  --radius-lg:22px; --radius-sm:10px;
+  --display:"Bricolage Grotesque", "Schibsted Grotesk", system-ui, sans-serif;
+  --body:"Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --paper:#0F1626; --sheet:#172036; --ink:#E8EDF6; --ink-2:#B3BDD0; --ink-3:#8C97AD;
+    --rule:#2A3550; --well:#202B45;
+    --stay:#5B83EE; --leave:#D96A1E; --stay-soft:#24356A; --leave-soft:#4A2A16;
+    --neutral:#6B7587; --good:#4CC28A; --bad:#F07A63;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --paper:#0F1626; --sheet:#172036; --ink:#E8EDF6; --ink-2:#B3BDD0; --ink-3:#8C97AD;
+  --rule:#2A3550; --well:#202B45;
+  --stay:#5B83EE; --leave:#D96A1E; --stay-soft:#24356A; --leave-soft:#4A2A16;
+  --neutral:#6B7587; --good:#4CC28A; --bad:#F07A63;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--stay)}
+:focus-visible{outline:3px solid var(--stay);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- top bar ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 0}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:-.01em;color:var(--ink);text-decoration:none}
+.brand svg{width:28px;height:28px}
+.top nav{display:flex;gap:18px;flex-wrap:wrap}
+.top nav a{color:var(--ink-2);text-decoration:none;font-weight:500;font-size:15px}
+.top nav a:hover{color:var(--ink)}
+.gh{display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--ink);border-radius:999px;padding:7px 14px;color:var(--ink);text-decoration:none;font-weight:600;font-size:14px}
+.gh:hover{background:var(--ink);color:var(--paper)}
+@media (max-width:760px){.top nav{display:none}}
+
+/* ---------- hero ---------- */
+.hero{padding:28px 0 56px}
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(38px,6.2vw,76px);line-height:.98;letter-spacing:-.035em;margin:0 0 18px;max-width:14ch}
+.hero .lede{font-size:clamp(17px,1.6vw,19px);color:var(--ink-2);max-width:62ch;margin:0 0 30px}
+.lab{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:22px;align-items:start}
+@media (max-width:920px){.lab{grid-template-columns:1fr}}
+.sheet{background:var(--sheet);border-radius:var(--radius-lg);padding:22px;border:1px solid var(--rule)}
+.file h2{font-family:var(--display);font-size:20px;margin:0 0 4px;letter-spacing:-.01em}
+.file .hint{color:var(--ink-3);font-size:14px;margin:0 0 16px}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.btn{font:inherit;font-weight:600;font-size:14px;border-radius:999px;padding:8px 14px;border:1.5px solid var(--rule);background:var(--sheet);color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.btn.primary:hover{opacity:.9}
+.field{margin-bottom:14px}
+.field label,.field .lbl{display:flex;justify-content:space-between;font-size:14px;font-weight:600;color:var(--ink-2);margin-bottom:6px}
+.field output{color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--ink);height:22px;margin:0}
+select{width:100%;font:inherit;font-size:15px;padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--rule);background:var(--sheet);color:var(--ink)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--well);border-radius:12px;padding:3px;gap:3px}
+.seg button{font:inherit;font-size:13.5px;font-weight:600;border:0;border-radius:9px;padding:7px 4px;background:transparent;color:var(--ink-2);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--sheet);color:var(--ink);box-shadow:0 1px 0 var(--rule)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.check,.field label.check{display:flex;justify-content:flex-start;align-items:center;gap:8px;font-size:13.5px;font-weight:500;color:var(--ink-2);margin-top:8px}
+
+/* verdict panel */
+@media (min-width:921px){.lab > .sheet.result{position:sticky;top:14px}}
+.verdict-top{display:grid;grid-template-columns:230px 1fr;gap:24px;align-items:center;padding-bottom:18px;border-bottom:1px solid var(--rule);margin-bottom:18px}
+@media (max-width:560px){.verdict-top{grid-template-columns:1fr;text-align:center}}
+.gauge-wrap svg{width:100%;max-width:240px;height:auto;display:block;margin:0 auto}
+.band{display:inline-block;margin-top:6px;font-weight:700;font-size:14px;border-radius:999px;padding:4px 12px}
+.band.low{background:var(--stay-soft);color:var(--stay)}
+.band.medium{background:var(--well);color:var(--ink-2)}
+.band.high,.band.critical{background:var(--leave-soft);color:var(--leave)}
+:root[data-theme="dark"] .band.high,:root[data-theme="dark"] .band.critical{color:#F3A46E}
+.action{margin:12px 0 0;font-size:15.5px;color:var(--ink-2)}
+.action b{color:var(--ink)}
+.truth{margin-top:12px;font-size:14px;color:var(--ink-2)}
+.truth button{font:inherit;font-size:14px;font-weight:600;color:var(--stay);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.tug h3{font-family:var(--display);font-size:22px;letter-spacing:-.015em;margin:0 0 4px}
+.tug p.sub{margin:0 0 14px;color:var(--ink-3);font-size:14px}
+.tug-legend{display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:6px}
+.tug-legend .l{color:var(--stay)} .tug-legend .r{color:var(--leave)}
+#tug svg{width:100%;height:auto;display:block}
+#tug text{font-family:var(--body)}
+
+/* ---------- sections ---------- */
+section.chapter{padding:64px 0;border-top:1px solid var(--rule)}
+.chapter-head{display:grid;grid-template-columns:1fr minmax(0,420px);gap:24px;align-items:end;margin-bottom:28px}
+@media (max-width:860px){.chapter-head{grid-template-columns:1fr}}
+.chapter h2{font-family:var(--display);font-weight:800;font-size:clamp(30px,4.2vw,50px);line-height:1;letter-spacing:-.03em;margin:0}
+.chapter-head p{margin:0;color:var(--ink-2)}
+
+/* decision lab */
+.decide{display:grid;grid-template-columns:300px 1fr;gap:22px}
+@media (max-width:920px){.decide{grid-template-columns:1fr}}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+@media (max-width:560px){.kpis{grid-template-columns:1fr}.kpi{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:10px}.kpi b{font-size:24px;grid-row:1/3;grid-column:2}}
+.kpi{background:var(--well);border-radius:14px;padding:12px 14px}
+.kpi span{display:block;font-size:13px;color:var(--ink-3);font-weight:500}
+.kpi b{font-family:var(--display);font-size:28px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kpi small{display:block;font-size:12.5px;color:var(--ink-3)}
+.pos{color:var(--good)} .neg{color:var(--bad)}
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.chart text{font-family:var(--body);font-size:12px;fill:var(--ink-3)}
+.chart .axis line,.chart .grid line{stroke:var(--rule)}
+.chart .zero{stroke:var(--ink-3);stroke-width:1}
+.units-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:22px 0 10px;flex-wrap:wrap}
+.units-head h3{font-family:var(--display);font-size:19px;margin:0}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--ink-2)}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+#units{width:100%;display:block;border-radius:12px;cursor:crosshair}
+.compare{display:grid;gap:8px;margin-top:16px}
+.compare div{display:flex;justify-content:space-between;font-size:14px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.compare div b{font-variant-numeric:tabular-nums}
+
+/* tabs */
+.tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.tabs button{font:inherit;font-weight:600;font-size:14px;border:1.5px solid var(--rule);background:var(--sheet);color:var(--ink-2);border-radius:999px;padding:7px 14px;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.panel-note{color:var(--ink-3);font-size:14px;margin:10px 0 0}
+
+/* drift */
+.drift{display:grid;grid-template-columns:330px 1fr;gap:22px}
+@media (max-width:920px){.drift{grid-template-columns:1fr}}
+@media (min-width:921px){.drift .sheet.result{position:sticky;top:14px;align-self:start}}
+.drift .tabs button{flex:1}
+.verdict-pill{display:inline-flex;align-items:center;gap:8px;font-weight:700;border-radius:999px;padding:6px 14px;font-size:14px}
+.verdict-pill.ok{background:var(--stay-soft);color:var(--stay)}
+.verdict-pill.alert{background:var(--leave-soft);color:var(--leave)}
+.flist{list-style:none;margin:14px 0 0;padding:0}
+.flist button{width:100%;display:grid;grid-template-columns:minmax(0,1fr) 70px 46px;gap:10px;align-items:center;font:inherit;font-size:13.5px;text-align:left;background:none;border:0;border-radius:9px;padding:5px 8px;color:var(--ink);cursor:pointer}
+.flist button > span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.flist button:hover{background:var(--well)}
+.flist button[aria-pressed=true]{background:var(--well);font-weight:700}
+.flist .bar{height:8px;background:var(--well);border-radius:4px;position:relative;overflow:hidden}
+.flist .bar i{position:absolute;inset:0 auto 0 0;border-radius:4px}
+.flist .psi{font-variant-numeric:tabular-nums;font-size:13px;text-align:right;color:var(--ink-2)}
+.reasons{margin:12px 0 0;padding-left:18px;color:var(--ink-2);font-size:14px}
+
+/* pipeline */
+.steps{list-style:none;margin:0;padding:0;counter-reset:s;display:grid;gap:10px}
+.steps li{display:grid;grid-template-columns:38px 1fr auto;gap:14px;align-items:start;background:var(--sheet);border:1px solid var(--rule);border-radius:16px;padding:14px 16px;transition:opacity .3s,border-color .3s}
+.steps li::before{counter-increment:s;content:counter(s);font-family:var(--display);font-weight:800;font-size:18px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--well);color:var(--ink-2)}
+.steps li.done::before{content:"✓";background:var(--stay);color:#fff}
+.steps li.pending{opacity:.45}
+.steps h4{margin:2px 0 2px;font-size:16px}
+.steps p{margin:0;color:var(--ink-3);font-size:14px}
+.steps .val{font-variant-numeric:tabular-nums;font-weight:700;font-size:14px;white-space:nowrap;padding-top:4px}
+.checks{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:4px}
+.checks li{display:block;border:0;padding:0;background:none;font-size:14px;color:var(--ink-2)}
+.checks li::before{content:none}
+.checks .ok{color:var(--good);font-weight:700;margin-right:6px}
+.checks .no{color:var(--bad);font-weight:700;margin-right:6px}
+
+/* tooltip */
+#livebar{position:fixed;left:50%;bottom:14px;transform:translate(-50%,140%);z-index:40;display:none;align-items:center;gap:12px;background:var(--ink);color:var(--paper);border:0;border-radius:999px;padding:10px 18px;font:inherit;font-weight:600;font-size:15px;box-shadow:0 8px 24px rgba(10,20,40,.25);transition:transform .25s ease;cursor:pointer}
+#livebar b{font-family:var(--display);font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+#livebar i{width:10px;height:10px;border-radius:50%;display:inline-block}
+@media (max-width:920px){#livebar{display:flex}#livebar.show{transform:translate(-50%,0)}}
+#tip{position:fixed;pointer-events:none;z-index:50;background:var(--ink);color:var(--paper);font-size:13px;line-height:1.4;padding:8px 10px;border-radius:10px;max-width:240px;opacity:0;transition:opacity .12s;font-variant-numeric:tabular-nums}
+#tip b{font-weight:700}
+
+footer{border-top:1px solid var(--rule);padding:40px 0 60px;color:var(--ink-2);font-size:15px}
+footer .cols{display:grid;grid-template-columns:2fr 1fr;gap:24px}
+@media (max-width:760px){footer .cols{grid-template-columns:1fr}}
+.stack{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.stack span{border:1px solid var(--rule);border-radius:999px;padding:4px 10px;font-size:13px;background:var(--sheet)}
+.theme-toggle{font:inherit;font-size:13px;background:none;border:1px solid var(--rule);border-radius:999px;padding:6px 12px;color:var(--ink-2);cursor:pointer}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<div id="tip" role="status" aria-live="polite"></div>
+<button type="button" id="livebar" aria-label="Jump to the prediction"><i></i><b>–</b><span>chance of leaving</span></button>
+
+<header class="wrap top">
+  <a class="brand" href="#">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="3"/><path d="M8 18c3-6 13-6 16 0" fill="none" stroke="var(--leave)" stroke-width="3" stroke-linecap="round"/><circle cx="16" cy="19" r="3" fill="var(--stay)"/></svg>
+    ChurnGuard
+  </a>
+  <nav aria-label="Sections">
+    <a href="#decide">Threshold</a><a href="#trust">Model quality</a><a href="#drift">Drift</a><a href="#pipeline">Pipeline</a>
+  </nav>
+  <a class="gh" href="https://github.com/johnbyronA/churnguard-mlops">
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    Source code
+  </a>
+</header>
+
+<main>
+<section class="wrap hero" aria-labelledby="hero-title">
+  <h1 id="hero-title">Will this customer leave?</h1>
+  <p class="lede">This is the production churn model, running in your browser. Change the customer and watch every
+  feature pull the prediction towards <span style="color:var(--stay);font-weight:700">staying</span> or
+  <span style="color:var(--leave);font-weight:700">leaving</span>. Same trees, same calibration, same answer as the API.</p>
+
+  <div class="lab">
+    <form class="sheet file" id="customer" onsubmit="return false" aria-label="Customer profile">
+      <h2>Customer profile</h2>
+      <p class="hint">Start from a preset or a real customer from the test set.</p>
+      <div class="presets">
+        <button type="button" class="btn primary" id="random">Random real customer</button>
+        <button type="button" class="btn" data-preset="risky">At-risk</button>
+        <button type="button" class="btn" data-preset="loyal">Loyal</button>
+      </div>
+
+      <div class="field"><span class="lbl" id="l-contract">Contract</span>
+        <div class="seg" role="group" aria-labelledby="l-contract" data-name="contract">
+          <button type="button" data-v="month-to-month">Monthly</button><button type="button" data-v="one-year">1 year</button><button type="button" data-v="two-year">2 years</button>
+        </div></div>
+      <div class="field"><span class="lbl" id="l-internet">Internet</span>
+        <div class="seg" role="group" aria-labelledby="l-internet" data-name="internet_service">
+          <button type="button" data-v="fiber">Fiber</button><button type="button" data-v="dsl">DSL</button><button type="button" data-v="none">None</button>
+        </div></div>
+      <div class="field"><label for="tenure_months">Months as a customer <output id="o-tenure_months"></output></label><input type="range" id="tenure_months" min="0" max="72" step="1"></div>
+      <div class="field"><label for="monthly_charges">Monthly bill <output id="o-monthly_charges"></output></label><input type="range" id="monthly_charges" min="15" max="160" step="0.5"></div>
+      <div class="field"><label for="usage_change_pct">Usage change, last 3 months <output id="o-usage_change_pct"></output></label><input type="range" id="usage_change_pct" min="-60" max="60" step="1"></div>
+      <div class="two">
+        <div class="field"><label for="support_tickets_90d">Support tickets <output id="o-support_tickets_90d"></output></label><input type="range" id="support_tickets_90d" min="0" max="10" step="1"></div>
+        <div class="field"><label for="late_payments_12m">Late payments <output id="o-late_payments_12m"></output></label><input type="range" id="late_payments_12m" min="0" max="8" step="1"></div>
+      </div>
+      <div class="two">
+        <div class="field"><label for="num_products">Products <output id="o-num_products"></output></label><input type="range" id="num_products" min="1" max="6" step="1"></div>
+        <div class="field"><label for="age">Age <output id="o-age"></output></label><input type="range" id="age" min="18" max="85" step="1"></div>
+      </div>
+      <div class="field"><label for="nps_score">Satisfaction (NPS 0–10) <output id="o-nps_score"></output></label><input type="range" id="nps_score" min="0" max="10" step="1">
+        <label class="check"><input type="checkbox" id="nps_missing"> Didn't answer the survey</label></div>
+      <div class="two">
+        <div class="field"><label for="payment_method">Payment</label><select id="payment_method">
+          <option value="electronic_check">Electronic check</option><option value="credit_card">Credit card</option><option value="bank_transfer">Bank transfer</option><option value="cash">Cash</option></select></div>
+        <div class="field"><label for="city">City</label><select id="city">
+          <option>Medellin</option><option>Bogota</option><option>Cali</option><option>Barranquilla</option><option>Cartagena</option><option>Bucaramanga</option></select></div>
+      </div>
+      <label class="check"><input type="checkbox" id="paperless_billing"> Paperless billing</label>
+    </form>
+
+    <div class="sheet result">
+      <div class="verdict">
+        <div class="verdict-top">
+          <div class="gauge-wrap">
+            <svg id="gauge" viewBox="0 0 260 150" role="img" aria-labelledby="gauge-label"></svg>
+            <div id="gauge-label" class="sr"></div>
+          </div>
+          <div>
+            <span class="band" id="band"></span>
+            <p class="action" id="action"></p>
+            <div class="truth" id="truth"></div>
+          </div>
+        </div>
+        <div class="tug" id="tug-panel">
+          <h3>Why the model thinks so</h3>
+          <p class="sub" id="tug-sub">Each bar is how much one feature moves this customer's churn odds, from the model's own tree splits.</p>
+          <div class="tug-legend"><span class="l">← keeps them</span><span class="r">pushes them out →</span></div>
+          <div id="tug" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="chapter" id="decide" aria-labelledby="decide-title">
+  <div class="wrap">
+    <div class="chapter-head">
+      <h2 id="decide-title">A score is not a decision</h2>
+      <p>Retention offers cost money. Set the economics, then drag the line: who do we call? Every square below is one of the
+      <b class="num" id="n-test"></b> customers the model never saw during training.</p>
+    </div>
+    <div class="decide">
+      <div class="sheet">
+        <div class="field"><label for="offer">Cost of one retention offer <output id="o-offer"></output></label><input type="range" id="offer" min="5" max="120" step="1"></div>
+        <div class="field"><label for="success">Churners who accept the offer and stay <output id="o-success"></output></label><input type="range" id="success" min="0.05" max="0.8" step="0.01"></div>
+        <div class="field"><label for="horizon">Months of revenue saved per retained customer <output id="o-horizon"></output></label><input type="range" id="horizon" min="1" max="24" step="1"></div>
+        <div class="field"><label for="thr">Call everyone above this churn risk <output id="o-thr"></output></label><input type="range" id="thr" min="0.02" max="0.98" step="0.01"></div>
+        <button type="button" class="btn primary" id="snap" style="width:100%">Find the most profitable threshold</button>
+        <div class="compare" id="compare"></div>
+      </div>
+      <div class="sheet">
+        <div class="kpis">
+          <div class="kpi"><span>Campaign net value</span><b id="k-value"></b><small id="k-value-sub"></small></div>
+          <div class="kpi"><span>Customers contacted</span><b id="k-contact"></b><small id="k-contact-sub"></small></div>
+          <div class="kpi"><span>Churners reached</span><b id="k-recall"></b><small id="k-recall-sub"></small></div>
+        </div>
+        <div class="chart" id="value-chart" aria-label="Net campaign value by threshold"></div>
+        <div class="units-head">
+          <h3>Every test customer, riskiest first</h3>
+          <div class="legend" id="unit-legend"></div>
+        </div>
+        <canvas id="units" height="260" aria-label="Unit chart of test customers by outcome"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="chapter" id="trust" aria-labelledby="trust-title">
+  <div class="wrap">
+    <div class="chapter-head">
+      <h2 id="trust-title">Can you trust the numbers?</h2>
+      <p>Ranking power, honest probabilities and a tracked search for the model itself. Hover any chart to read exact values.</p>
+    </div>
+    <div class="sheet">
+      <div class="tabs" role="tablist" aria-label="Model quality views">
+        <button role="tab" aria-selected="true" data-tab="gains">Who it catches</button>
+        <button role="tab" aria-selected="false" data-tab="calib">Are the probabilities honest?</button>
+        <button role="tab" aria-selected="false" data-tab="optuna">How the model was found</button>
+      </div>
+      <div class="chart" id="trust-chart"></div>
+      <p class="panel-note" id="trust-note"></p>
+    </div>
+  </div>
+</section>
+
+<section class="chapter" id="drift" aria-labelledby="drift-title">
+  <div class="wrap">
+    <div class="chapter-head">
+      <h2 id="drift-title">When the world changes, the model notices</h2>
+      <p>Compare a new production batch with the data the champion learned from. Switch to the batch after a price increase and a
+      service incident, then pick any feature to see how its distribution moved.</p>
+    </div>
+    <div class="drift">
+      <div class="sheet">
+        <div class="tabs" role="tablist" aria-label="Production batch">
+          <button role="tab" aria-selected="false" data-batch="stable">Normal week</button>
+          <button role="tab" aria-selected="true" data-batch="drifted">After price increase</button>
+        </div>
+        <div id="drift-verdict"></div>
+        <ul class="reasons" id="drift-reasons"></ul>
+        <ul class="flist" id="flist" aria-label="Features by stability index"></ul>
+      </div>
+      <div class="sheet result">
+        <div class="units-head" style="margin-top:0">
+          <h3 id="hist-title"></h3>
+          <div class="legend"><span><i style="background:var(--neutral)"></i>Training reference</span><span><i style="background:var(--leave)"></i>New batch</span></div>
+        </div>
+        <div class="chart" id="hist"></div>
+        <p class="panel-note" id="hist-note"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="chapter" id="pipeline" aria-labelledby="pipe-title">
+  <div class="wrap">
+    <div class="chapter-head">
+      <h2 id="pipe-title">How a model earns production</h2>
+      <p>The steps a retrained model goes through before it can replace the current champion. The values are from a real
+      continuous-training run.</p>
+    </div>
+    <div style="margin-bottom:14px"><button type="button" class="btn primary" id="replay">Replay the last retraining</button></div>
+    <ol class="steps" id="steps"></ol>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap cols">
+    <div>
+      <p style="margin-top:0"><b>ChurnGuard</b> is an end-to-end MLOps project by <b>John Byron Alzate Hernández</b>, Medellín.
+      The page above runs the exported champion: <span id="f-trees" class="num"></span> LightGBM trees, the training medians and
+      category layout, and the Platt calibration. A parity test in CI checks it reproduces the Python probabilities, with a maximum error below 0.000001.</p>
+      <div class="stack"><span>LightGBM</span><span>Optuna</span><span>MLflow</span><span>scikit-learn</span><span>FastAPI</span><span>Docker</span><span>Prometheus</span><span>Grafana</span><span>GitHub Actions</span></div>
+    </div>
+    <div>
+      <p style="margin-top:0"><a href="https://github.com/johnbyronA/churnguard-mlops">Source code and docs on GitHub</a><br>
+      Model <span id="f-version" class="num"></span><br>Synthetic data, no real customers.</p>
+      <button class="theme-toggle" id="theme" type="button">Switch theme</button>
+    </div>
+  </div>
+</footer>
+
+<script>
+window.CHURNGUARD = /*__CHURNGUARD_DATA__*/null;
+</script>
+<script>/*__SCORER__*/</script>
+<script>
+(function(){
+"use strict";
+const D = window.CHURNGUARD;
+const scorer = ChurnGuardScorer.createScorer(D.model);
+const THR = D.model.threshold;
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs={}, parent) => { const e=document.createElementNS(NS,tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const fmtMoney = (v) => (v<0?"−$":"$") + Math.abs(Math.round(v)).toLocaleString("en-US");
+const fmtPct = (v, d=0) => (v*100).toFixed(d) + "%";
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- tooltip ---------- */
+const tip = $("#tip");
+function showTip(html, x, y){ tip.innerHTML = html; tip.style.opacity = 1;
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.min(window.innerWidth - w - 8, Math.max(8, x + 14)) + "px";
+  tip.style.top = Math.max(8, y - h - 12) + "px"; }
+function hideTip(){ tip.style.opacity = 0; }
+
+const LABELS = {
+  tenure_months:"Months as customer", contract:"Contract", usage_change_pct:"Usage change",
+  tickets_per_tenure_year:"Support tickets per year", charge_per_product:"Bill per product",
+  nps_score:"Satisfaction", late_payments_12m:"Late payments", monthly_charges:"Monthly bill",
+  internet_service:"Internet", payment_method:"Payment method", avg_charge_per_month:"Average monthly spend",
+  age:"Age", support_tickets_90d:"Support tickets (90d)", num_products:"Products", total_charges:"Total billed",
+  paperless_billing:"Paperless billing", city:"City", is_new_customer:"New customer",
+  nps_missing:"Skipped survey", engagement_drop:"Usage dropped >15%", churn_score:"Predicted churn risk"
+};
+const label = (f) => LABELS[f] || f.replace(/_/g," ");
+const NICE = {"month-to-month":"monthly","one-year":"1 year","two-year":"2 years","electronic_check":"electronic check",
+  "credit_card":"credit card","bank_transfer":"bank transfer","fiber":"fiber","dsl":"DSL","none":"none"};
+function valueText(f, v){
+  if (v == null) return "no answer";
+  if (typeof v === "string") return NICE[v] || v;
+  switch(f){
+    case "monthly_charges": case "charge_per_product": case "avg_charge_per_month": case "total_charges": return "$" + Math.round(v).toLocaleString("en-US");
+    case "usage_change_pct": return (v>0?"+":"") + Math.round(v) + "%";
+    case "tickets_per_tenure_year": return v.toFixed(1);
+    case "paperless_billing": case "is_new_customer": case "nps_missing": case "engagement_drop": return v ? "yes" : "no";
+    case "tenure_months": return v + (v===1?" month":" months");
+    default: return Number.isInteger(v) ? String(v) : v.toFixed(1);
+  }
+}
+
+/* ---------- business logic (mirrors churnguard/business.py) ---------- */
+function riskBand(p, t){ if (p >= Math.max(t*1.8, 0.6)) return "critical"; if (p >= t) return "high"; if (p >= t*0.6) return "medium"; return "low"; }
+function action(band, mc){
+  return {critical:"Priority retention call within 24h" + (mc >= 90 ? " + loyalty discount" : ""),
+          high:"Send a personalised retention offer", medium:"Add to the proactive engagement flow", low:"No action, keep monitoring"}[band];
+}
+
+/* ======================================================================
+   1. Live scorer
+   ====================================================================== */
+const PRESETS = {
+  risky:{age:34,city:"Medellin",tenure_months:3,contract:"month-to-month",internet_service:"fiber",num_products:1,monthly_charges:118,total_charges:null,payment_method:"electronic_check",paperless_billing:1,support_tickets_90d:4,late_payments_12m:2,usage_change_pct:-30,nps_score:3},
+  loyal:{age:47,city:"Bogota",tenure_months:58,contract:"two-year",internet_service:"dsl",num_products:4,monthly_charges:62,total_charges:null,payment_method:"bank_transfer",paperless_billing:1,support_tickets_90d:0,late_payments_12m:0,usage_change_pct:8,nps_score:9},
+};
+let customer = Object.assign({}, PRESETS.risky);
+let truth = null;
+const SLIDERS = ["tenure_months","monthly_charges","usage_change_pct","support_tickets_90d","late_payments_12m","num_products","age","nps_score"];
+
+function setForm(c){
+  SLIDERS.forEach(k => { if (k === "nps_score" && c.nps_score == null) return; $("#"+k).value = c[k]; });
+  $("#nps_missing").checked = c.nps_score == null;
+  $("#nps_score").disabled = c.nps_score == null;
+  $("#payment_method").value = c.payment_method;
+  $("#city").value = c.city;
+  $("#paperless_billing").checked = !!c.paperless_billing;
+  $$(".seg").forEach(seg => { const name = seg.dataset.name;
+    $$("button", seg).forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === c[name]))); });
+}
+function readOutputs(){
+  $("#o-tenure_months").textContent = valueText("tenure_months", +customer.tenure_months);
+  $("#o-monthly_charges").textContent = "$" + (+customer.monthly_charges).toFixed(0);
+  $("#o-usage_change_pct").textContent = valueText("usage_change_pct", +customer.usage_change_pct);
+  ["support_tickets_90d","late_payments_12m","num_products","age"].forEach(k => $("#o-"+k).textContent = customer[k]);
+  $("#o-nps_score").textContent = customer.nps_score == null ? "–" : customer.nps_score;
+}
+SLIDERS.forEach(k => $("#"+k).addEventListener("input", e => { customer[k] = +e.target.value; customer.total_charges = null; truth = null; update(); }));
+$("#nps_missing").addEventListener("change", e => { customer.nps_score = e.target.checked ? null : +$("#nps_score").value; $("#nps_score").disabled = e.target.checked; truth=null; update(); });
+$("#payment_method").addEventListener("change", e => { customer.payment_method = e.target.value; truth=null; update(); });
+$("#city").addEventListener("change", e => { customer.city = e.target.value; truth=null; update(); });
+$("#paperless_billing").addEventListener("change", e => { customer.paperless_billing = e.target.checked ? 1 : 0; truth=null; update(); });
+$$(".seg").forEach(seg => seg.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
+  customer[seg.dataset.name] = b.dataset.v; truth = null; setForm(customer); update(); }));
+$$("[data-preset]").forEach(b => b.addEventListener("click", () => { customer = Object.assign({}, PRESETS[b.dataset.preset]); truth=null; setForm(customer); update(); }));
+$("#random").addEventListener("click", () => {
+  const s = D.samples[Math.floor(Math.random()*D.samples.length)];
+  customer = {}; for (const k in s) if (k !== "churn" && k !== "p") customer[k] = s[k];
+  truth = {churn: s.churn, revealed:false}; setForm(customer); update();
+});
+
+/* gauge */
+function drawGauge(p){
+  const g = $("#gauge"); g.innerHTML = "";
+  const cx=130, cy=128, r=104, sw=22;
+  const ang = (v) => Math.PI * (1 - v);
+  const pt = (v, rr=r) => [cx + rr*Math.cos(ang(v)), cy - rr*Math.sin(ang(v))];
+  const arc = (a,b,color) => { const [x1,y1]=pt(a), [x2,y2]=pt(b);
+    el("path",{d:`M${x1} ${y1} A${r} ${r} 0 ${b-a>0.5?1:0} 1 ${x2} ${y2}`, fill:"none", stroke:color, "stroke-width":sw, "stroke-linecap":"butt"}, g); };
+  arc(0, 1, css("--well"));
+  arc(0, Math.max(0.002, p), p >= THR ? css("--leave") : css("--stay"));
+  const [tx1,ty1] = pt(THR, r - sw/2 - 6), [tx2,ty2] = pt(THR, r + sw/2 + 6);
+  el("line",{x1:tx1,y1:ty1,x2:tx2,y2:ty2,stroke:css("--ink"),"stroke-width":2.5}, g);
+  const [lx,ly] = pt(THR, r - sw/2 - 14);
+  const tl = el("text",{x:lx+4,y:ly+4,"text-anchor":"start","font-size":11,fill:css("--ink-3"),"font-family":"Schibsted Grotesk, sans-serif"}, g); tl.textContent = "call line";
+  const t = el("text",{x:cx,y:cy-12,"text-anchor":"middle","font-family":"Bricolage Grotesque, sans-serif","font-weight":800,"font-size":54,fill:css("--ink"),"letter-spacing":"-2"}, g);
+  t.textContent = Math.round(p*100) + "%";
+  const s = el("text",{x:cx,y:cy+10,"text-anchor":"middle","font-size":13,fill:css("--ink-3"),"font-family":"Schibsted Grotesk, sans-serif"}, g);
+  s.textContent = "chance of leaving";
+  $("#gauge-label").textContent = `Predicted churn probability ${Math.round(p*100)} percent`;
+}
+
+/* tug of war */
+function drawTug(res){
+  const host = $("#tug"); host.innerHTML = "";
+  const entries = Object.entries(res.contributions).sort((a,b) => Math.abs(b[1]) - Math.abs(a[1]));
+  const top = entries.slice(0, 8);
+  const rest = entries.slice(8).reduce((s,[,v]) => s+v, 0);
+  if (Math.abs(rest) > 0.01) top.push(["__rest", rest]);
+  const W = Math.max(300, Math.round(host.clientWidth || 640)), narrow = W < 520;
+  const rowH = narrow ? 46 : 38, H = top.length * rowH + 8, mid = W/2;
+  const maxAbs = Math.max(0.6, ...top.map(([,v]) => Math.abs(v)));
+  const sc = (narrow ? mid - 8 : mid - 160) / maxAbs;
+  const svg = el("svg",{viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":"Feature contributions"}, host);
+  if (!narrow) el("line",{x1:mid,y1:0,x2:mid,y2:H,stroke:css("--rule"),"stroke-width":2}, svg);
+  top.forEach(([f,v], i) => {
+    const y = i*rowH + 6, w = Math.max(2, Math.abs(v)*sc), up = v > 0;
+    const x = up ? mid + 1 : mid - 1 - w;
+    const barY = narrow ? y + 24 : y + 9;
+    if (narrow) el("line",{x1:mid,y1:barY-3,x2:mid,y2:barY+17,stroke:css("--rule"),"stroke-width":2}, svg);
+    const r = el("rect",{x, y:barY, width:w, height: narrow ? 14 : 18, rx:4, fill: up ? css("--leave") : css("--stay")}, svg);
+    if (!reduced){ r.setAttribute("width", 0); if (!up) r.setAttribute("x", mid-1); requestAnimationFrame(() => { r.style.transition="width .35s ease, x .35s ease"; r.setAttribute("width", w); r.setAttribute("x", x); }); }
+    const name = f === "__rest" ? "Everything else" : label(f);
+    const val = f === "__rest" ? "" : valueText(f, res.values[f]);
+    if (narrow){
+      const nt = el("text",{x: 2, y:y+16, "text-anchor":"start", "font-size":13.5, "font-weight":600, fill:css("--ink")}, svg);
+      nt.textContent = name + (val ? "  " : "");
+      if (val){ const ts = el("tspan",{fill:css("--ink-3"),"font-weight":400}, nt); ts.textContent = val; }
+    } else {
+      const lx = up ? mid - 10 : mid + 10;
+      const nt = el("text",{x:lx, y:y+17, "text-anchor": up?"end":"start", "font-size":15, "font-weight":600, fill:css("--ink")}, svg);
+      nt.textContent = name;
+      const vt = el("text",{x:lx, y:y+33, "text-anchor": up?"end":"start", "font-size":13, fill:css("--ink-3")}, svg);
+      vt.textContent = val;
+    }
+    const odds = Math.exp(Math.abs(v));
+    const hit = el("rect",{x:0,y:y,width:W,height:rowH,fill:"transparent"}, svg);
+    hit.addEventListener("mousemove", e => showTip(`<b>${name}</b>${val?" = "+val:""}<br>${up?"Raises":"Lowers"} churn odds ×${odds.toFixed(2)}<br>(${v>0?"+":""}${v.toFixed(3)} log-odds)`, e.clientX, e.clientY));
+    hit.addEventListener("mouseleave", hideTip);
+  });
+}
+
+function update(){
+  readOutputs();
+  const res = scorer.score(customer, true);
+  const p = res.p, band = riskBand(p, THR);
+  drawGauge(p);
+  const b = $("#band"); b.className = "band " + band; b.textContent = band[0].toUpperCase() + band.slice(1) + " risk";
+  const mc = +customer.monthly_charges;
+  const ev = p * D.economics.success * mc * D.economics.horizon - D.economics.offer_cost;
+  $("#action").innerHTML = `<b>${action(band, mc)}.</b><br>Expected value of an offer: <b class="${ev>=0?"pos":"neg"} num">${fmtMoney(ev)}</b>`;
+  drawTug(res);
+  const lb = $("#livebar"); $("b", lb).textContent = Math.round(p*100) + "%";
+  $("i", lb).style.background = p >= THR ? css("--leave") : css("--stay");
+  $("span", lb).textContent = band[0].toUpperCase() + band.slice(1) + " risk";
+  const tr = $("#truth");
+  if (!truth) tr.innerHTML = `<span>Tip: load a <b>random real customer</b> and guess before you reveal what happened.</span>`;
+  else if (!truth.revealed) { tr.innerHTML = `<button type="button" id="reveal">Reveal what this customer actually did</button>`;
+    $("#reveal").onclick = () => { truth.revealed = true; update(); }; }
+  else { const right = (p >= THR) === !!truth.churn;
+    tr.innerHTML = `They <b>${truth.churn ? "left" : "stayed"}</b>. The model ${right ? "got it right" : "missed this one"} — it's right about ${fmtPct(1 - errorRate(), 0)} of the time at this line.`; }
+}
+function errorRate(){ let e=0; const {y,p} = D.test; for (let i=0;i<y.length;i++) if ((p[i]>=THR) !== !!y[i]) e++; return e / y.length; }
+
+/* ======================================================================
+   2. Decision lab
+   ====================================================================== */
+const T = D.test, N = T.y.length;
+const order = Array.from({length:N}, (_,i) => i).sort((a,b) => T.p[b] - T.p[a]);
+const econ = {offer: D.economics.offer_cost, success: D.economics.success, horizon: D.economics.horizon};
+let thr = D.meta.business.threshold;
+$("#n-test").textContent = N.toLocaleString("en-US");
+
+function netValue(t){
+  let v = 0, contacted = 0, caught = 0;
+  for (let i=0;i<N;i++) if (T.p[i] >= t){ contacted++; v -= econ.offer; if (T.y[i]){ caught++; v += econ.success * T.mc[i] * econ.horizon; } }
+  return {v, contacted, caught};
+}
+const totalChurn = T.y.reduce((s,v) => s+v, 0);
+const THRS = Array.from({length:97}, (_,i) => +(0.02 + i*0.01).toFixed(2));
+let curve = [];
+function bestThr(){ let best = THRS[0], bv = -Infinity; curve.forEach(c => { if (c.v > bv){ bv = c.v; best = c.t; } }); return best; }
+
+function drawValueChart(){
+  const host = $("#value-chart"); host.innerHTML = "";
+  const W = Math.max(300, Math.round(host.clientWidth || 720)), H = W < 520 ? 220 : 250, m={l:52,r:14,t:22,b:34};
+  const svg = el("svg",{viewBox:`0 0 ${W} ${H}`}, host);
+  const vs = curve.map(c => c.v);
+  const contactAll = netValue(0).v;
+  const lo = Math.min(0, ...vs), hi = Math.max(1, ...vs);
+  const x = t => m.l + (t - 0) / 1 * (W - m.l - m.r);
+  const y = v => m.t + (hi - v) / (hi - lo) * (H - m.t - m.b);
+  const ticks = niceTicks(lo, hi, 5);
+  const grid = el("g",{class:"grid"}, svg);
+  ticks.forEach(tv => { el("line",{x1:m.l,x2:W-m.r,y1:y(tv),y2:y(tv)}, grid);
+    const tt = el("text",{x:m.l-8,y:y(tv)+4,"text-anchor":"end"}, svg); tt.textContent = shortMoney(tv); });
+  [0,0.25,0.5,0.75,1].forEach(tv => { const tt = el("text",{x:x(tv),y:H-14,"text-anchor": tv===0?"start":tv===1?"end":"middle"}, svg); tt.textContent = fmtPct(tv); });
+  const xl = el("text",{x:W-m.r,y:H-0,"text-anchor":"end"}, svg); xl.textContent = "call line (churn risk)";
+  el("line",{x1:m.l,x2:W-m.r,y1:y(0),y2:y(0),class:"zero"}, svg);
+  const d = curve.map((c,i) => `${i?"L":"M"}${x(c.t).toFixed(1)} ${y(c.v).toFixed(1)}`).join(" ");
+  el("path",{d:`${d} L${x(curve[curve.length-1].t)} ${y(0)} L${x(curve[0].t)} ${y(0)} Z`, fill:css("--stay-soft"), opacity:.7}, svg);
+  el("path",{d, fill:"none", stroke:css("--stay"), "stroke-width":2.5, "stroke-linejoin":"round"}, svg);
+  const bt = bestThr(), bv = curve.find(c => c.t === bt).v;
+  el("circle",{cx:x(bt), cy:y(bv), r:5, fill:css("--sheet"), stroke:css("--stay"), "stroke-width":2.5}, svg);
+  const bl = el("text",{x:x(bt), y:y(bv)-12, "text-anchor":"middle", "font-weight":700, fill:css("--ink-2")}, svg); bl.textContent = "most profitable";
+  // draggable current line
+  const cur = curve.reduce((a,c) => Math.abs(c.t-thr) < Math.abs(a.t-thr) ? c : a);
+  const g = el("g",{style:"cursor:ew-resize"}, svg);
+  el("line",{x1:x(thr),x2:x(thr),y1:m.t,y2:H-m.b,stroke:css("--leave"),"stroke-width":2.5}, g);
+  el("circle",{cx:x(thr), cy:y(cur.v), r:7, fill:css("--leave"), stroke:css("--sheet"), "stroke-width":2}, g);
+  const hit = el("rect",{x:m.l,y:m.t,width:W-m.l-m.r,height:H-m.t-m.b,fill:"transparent",style:"cursor:ew-resize"}, svg);
+  let dragging = false;
+  const toT = (e) => { const r = svg.getBoundingClientRect(); const px = (e.clientX - r.left) / r.width * W;
+    return Math.min(0.98, Math.max(0.02, Math.round(((px - m.l) / (W - m.l - m.r)) * 100) / 100)); };
+  hit.addEventListener("pointerdown", e => { dragging = true; hit.setPointerCapture(e.pointerId); setThr(toT(e)); });
+  hit.addEventListener("pointermove", e => { const t = toT(e); const c = curve.find(q => q.t === t) || cur;
+    if (dragging) setThr(t);
+    showTip(`Call line <b>${fmtPct(t)}</b><br>Net value <b>${fmtMoney(c.v)}</b><br>${c.contacted.toLocaleString("en-US")} calls · ${c.caught} churners reached`, e.clientX, e.clientY); });
+  hit.addEventListener("pointerup", () => { dragging = false; });
+  hit.addEventListener("pointerleave", hideTip);
+  host.dataset.contactAll = contactAll;
+}
+function niceTicks(lo, hi, n){ const span = hi - lo; const step0 = span / n; const mag = Math.pow(10, Math.floor(Math.log10(step0)));
+  const step = [1,2,2.5,5,10].map(s => s*mag).find(s => span / s <= n) || mag*10;
+  const out = []; for (let v = Math.ceil(lo/step)*step; v <= hi + 1e-9; v += step) out.push(+v.toFixed(6)); return out; }
+function shortMoney(v){ const a = Math.abs(v); const s = a >= 1000 ? (a/1000).toFixed(a>=10000?0:1).replace(/\.0$/,"") + "k" : Math.round(a); return (v<0?"−$":"$") + s; }
+
+/* unit chart */
+const unitCanvas = $("#units");
+const UNIT_KEYS = [
+  {k:"saved", name:"Churners we call", color:() => css("--leave")},
+  {k:"missed", name:"Churners we miss", color:() => css("--leave-soft")},
+  {k:"wasted", name:"Calls to loyal customers", color:() => css("--stay")},
+  {k:"quiet", name:"Loyal, not called", color:() => css("--well")},
+];
+function unitKind(i){ const called = T.p[i] >= thr, churn = !!T.y[i]; return churn ? (called ? "saved" : "missed") : (called ? "wasted" : "quiet"); }
+let unitLayout = null;
+function drawUnits(){
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = unitCanvas.clientWidth;
+  const cell = cssW < 500 ? 5 : 7, gap = 1.5, step = cell + gap;
+  const cols = Math.max(20, Math.floor(cssW / step));
+  const rows = Math.ceil(N / cols);
+  const cssH = rows * step;
+  unitCanvas.width = cssW * dpr; unitCanvas.height = cssH * dpr; unitCanvas.style.height = cssH + "px";
+  const ctx = unitCanvas.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,cssW,cssH);
+  const colors = Object.fromEntries(UNIT_KEYS.map(u => [u.k, u.color()]));
+  const counts = {saved:0, missed:0, wasted:0, quiet:0};
+  order.forEach((idx, j) => { const kind = unitKind(idx); counts[kind]++;
+    const c = j % cols, r = Math.floor(j / cols);
+    ctx.fillStyle = colors[kind]; ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(c*step, r*step, cell, cell, 1.5); else ctx.rect(c*step, r*step, cell, cell);
+    ctx.fill(); });
+  unitLayout = {step, cols};
+  $("#unit-legend").innerHTML = UNIT_KEYS.map(u => `<span><i style="background:${colors[u.k]};${u.k==="quiet"?"outline:1px solid var(--rule)":""}"></i>${u.name} <b class="num">${counts[u.k].toLocaleString("en-US")}</b></span>`).join("");
+}
+unitCanvas.addEventListener("mousemove", e => { if (!unitLayout) return; const r = unitCanvas.getBoundingClientRect();
+  const c = Math.floor((e.clientX - r.left) / unitLayout.step), row = Math.floor((e.clientY - r.top) / unitLayout.step);
+  const j = row * unitLayout.cols + c; if (c >= unitLayout.cols || j < 0 || j >= N) return hideTip();
+  const i = order[j]; const kind = UNIT_KEYS.find(u => u.k === unitKind(i));
+  showTip(`Risk rank <b>#${j+1}</b> · predicted <b>${fmtPct(T.p[i],1)}</b><br>Monthly bill $${Math.round(T.mc[i])} · actually <b>${T.y[i]?"left":"stayed"}</b><br>${kind.name}`, e.clientX, e.clientY); });
+unitCanvas.addEventListener("mouseleave", hideTip);
+
+function refreshDecision(){
+  $("#o-offer").textContent = "$" + econ.offer;
+  $("#o-success").textContent = fmtPct(econ.success);
+  $("#o-horizon").textContent = econ.horizon + (econ.horizon === 1 ? " month" : " months");
+  $("#o-thr").textContent = fmtPct(thr);
+  $("#thr").value = thr;
+  const now = netValue(thr), naive = netValue(0.5), all = netValue(0);
+  const best = curve.find(c => c.t === bestThr());
+  $("#k-value").textContent = fmtMoney(now.v); $("#k-value").className = "num " + (now.v >= 0 ? "pos" : "neg");
+  $("#k-value-sub").textContent = best.t === thr ? "the best this model can do here"
+    : thr === D.meta.business.threshold ? `line chosen on validation data; ${fmtMoney(best.v - now.v)} short of the test optimum` : `${fmtMoney(best.v - now.v)} left on the table`;
+  $("#k-contact").textContent = now.contacted.toLocaleString("en-US");
+  $("#k-contact-sub").textContent = fmtPct(now.contacted / N) + " of customers";
+  $("#k-recall").textContent = fmtPct(now.caught / totalChurn);
+  $("#k-recall-sub").textContent = `${now.caught} of ${totalChurn}, ${now.contacted ? fmtPct(now.caught/now.contacted) : "–"} of calls hit`;
+  $("#compare").innerHTML = [
+    ["Call everyone", all.v], ["Model, default 50% line", naive.v], [`Model, most profitable (${fmtPct(best.t)})`, best.v]
+  ].map(([n,v]) => `<div><span>${n}</span><b class="${v>=0?"pos":"neg"}">${fmtMoney(v)}</b></div>`).join("");
+  drawValueChart(); drawUnits();
+  if (currentTab === "gains") drawTrust();
+}
+function recomputeCurve(){ curve = THRS.map(t => Object.assign({t}, netValue(t))); }
+function setThr(t){ thr = t; refreshDecision(); }
+[["offer","offer",1],["success","success",1],["horizon","horizon",1]].forEach(([id,key]) => {
+  $("#"+id).value = econ[key];
+  $("#"+id).addEventListener("input", e => { econ[key] = +e.target.value; recomputeCurve(); refreshDecision(); }); });
+$("#thr").addEventListener("input", e => setThr(+e.target.value));
+$("#snap").addEventListener("click", () => setThr(bestThr()));
+
+/* ======================================================================
+   3. Model quality
+   ====================================================================== */
+let currentTab = "gains";
+$$("[data-tab]").forEach(b => b.addEventListener("click", () => { currentTab = b.dataset.tab;
+  $$("[data-tab]").forEach(x => x.setAttribute("aria-selected", String(x === b))); drawTrust(); }));
+
+function axes(svg, W, H, m, xTicks, yTicks, x, y, xFmt, yFmt, xLabel, yLabel){
+  const g = el("g",{class:"grid"}, svg);
+  yTicks.forEach(v => { el("line",{x1:m.l,x2:W-m.r,y1:y(v),y2:y(v)}, g); const t = el("text",{x:m.l-8,y:y(v)+4,"text-anchor":"end"}, svg); t.textContent = yFmt(v); });
+  xTicks.forEach(v => { const t = el("text",{x:x(v),y:H-m.b+18,"text-anchor":"middle"}, svg); t.textContent = xFmt(v); });
+  const xl = el("text",{x:(m.l+W-m.r)/2,y:H-4,"text-anchor":"middle"}, svg); xl.textContent = xLabel;
+  const yl = el("text",{x:14,y:(m.t+H-m.b)/2,"text-anchor":"middle",transform:`rotate(-90 14 ${(m.t+H-m.b)/2})`}, svg); yl.textContent = yLabel;
+}
+
+function drawTrust(){
+  const host = $("#trust-chart"); host.innerHTML = "";
+  const W = Math.max(300, Math.round(host.clientWidth || 900)), H = W < 520 ? 300 : 360, m={l:58,r:18,t:18,b:52};
+  const svg = el("svg",{viewBox:`0 0 ${W} ${H}`}, host);
+  const x01 = v => m.l + v*(W-m.l-m.r), y01 = v => m.t + (1-v)*(H-m.t-m.b);
+  const pctTicks = W < 520 ? [0,0.25,0.5,0.75,1] : [0,0.2,0.4,0.6,0.8,1];
+  if (currentTab === "gains"){
+    const pts = [[0,0]]; let caught = 0;
+    order.forEach((i, j) => { caught += T.y[i]; if ((j+1) % 20 === 0 || j === N-1) pts.push([(j+1)/N, caught/totalChurn]); });
+    axes(svg,W,H,m,pctTicks,pctTicks,x01,y01,v=>fmtPct(v),v=>fmtPct(v),"customers contacted, riskiest first","churners reached");
+    el("line",{x1:x01(0),y1:y01(0),x2:x01(1),y2:y01(1),stroke:css("--neutral"),"stroke-dasharray":"5 5","stroke-width":1.5}, svg);
+    const rl = el("text",{x:x01(0.82),y:y01(0.82)+20,fill:css("--ink-3"),"text-anchor":"middle"}, svg); rl.textContent = "random calling";
+    const d = pts.map((p,i) => `${i?"L":"M"}${x01(p[0]).toFixed(1)} ${y01(p[1]).toFixed(1)}`).join(" ");
+    el("path",{d, fill:"none", stroke:css("--stay"), "stroke-width":2.5}, svg);
+    const now = netValue(thr); const cx = now.contacted / N, cy = now.caught / totalChurn;
+    el("line",{x1:x01(cx),x2:x01(cx),y1:y01(0),y2:y01(cy),stroke:css("--leave"),"stroke-width":1.5,"stroke-dasharray":"3 3"}, svg);
+    el("circle",{cx:x01(cx),cy:y01(cy),r:6,fill:css("--leave"),stroke:css("--sheet"),"stroke-width":2}, svg);
+    const lt = el("text",{x:x01(cx)+10,y:y01(cy)+18,fill:css("--ink"),"font-weight":700,"text-anchor": cx > 0.6 ? "end" : "start"}, svg); lt.textContent = `your call line: ${fmtPct(cx)} → ${fmtPct(cy)}`;
+    crosshair(svg, W, H, m, pts, x01, y01, p => `Contact top <b>${fmtPct(p[0])}</b><br>Reach <b>${fmtPct(p[1])}</b> of churners<br>Lift ×${(p[1]/Math.max(p[0],1e-9)).toFixed(2)}`);
+    $("#trust-note").textContent = `Calling the riskiest 10% reaches ${fmtPct(gainsAt(0.1))} of everyone who leaves, ${(gainsAt(0.1)/0.1).toFixed(1)}× better than calling at random. The orange dot follows the call line you set above. ROC-AUC ${D.meta.metrics.roc_auc.toFixed(3)}.`;
+  } else if (currentTab === "calib"){
+    const idx = Array.from({length:N}, (_,i) => i).sort((a,b) => T.p[a] - T.p[b]);
+    const bins = 10, pts = [];
+    for (let b=0;b<bins;b++){ const sl = idx.slice(Math.floor(b*N/bins), Math.floor((b+1)*N/bins));
+      const mp = sl.reduce((s,i) => s+T.p[i], 0)/sl.length, mo = sl.reduce((s,i) => s+T.y[i], 0)/sl.length; pts.push([mp, mo, sl.length]); }
+    const top = Math.min(1, Math.ceil(Math.max(...pts.map(p => Math.max(p[0],p[1])))*10)/10 + 0.1);
+    const xs = v => m.l + v/top*(W-m.l-m.r), ys = v => m.t + (1-v/top)*(H-m.t-m.b);
+    const tk = niceTicks(0, top, 5);
+    axes(svg,W,H,m,tk,tk,xs,ys,v=>fmtPct(v),v=>fmtPct(v),"predicted churn risk (10 groups of equal size)","share that actually left");
+    el("line",{x1:xs(0),y1:ys(0),x2:xs(top),y2:ys(top),stroke:css("--neutral"),"stroke-dasharray":"5 5","stroke-width":1.5}, svg);
+    const pl = el("text",{x:xs(top*0.72)+6,y:ys(top*0.72)-8,fill:css("--ink-3")}, svg); pl.textContent = "perfectly honest";
+    el("path",{d:pts.map((p,i) => `${i?"L":"M"}${xs(p[0])} ${ys(p[1])}`).join(" "), fill:"none", stroke:css("--stay"), "stroke-width":2}, svg);
+    pts.forEach(p => { const c = el("circle",{cx:xs(p[0]),cy:ys(p[1]),r:7,fill:css("--stay"),stroke:css("--sheet"),"stroke-width":2}, svg);
+      const hit = el("circle",{cx:xs(p[0]),cy:ys(p[1]),r:16,fill:"transparent"}, svg);
+      hit.addEventListener("mousemove", e => showTip(`${p[2]} customers<br>Model said <b>${fmtPct(p[0],1)}</b><br>Actually left <b>${fmtPct(p[1],1)}</b>`, e.clientX, e.clientY));
+      hit.addEventListener("mouseleave", hideTip); });
+    $("#trust-note").textContent = `When the model says 30%, about 30% leave. Calibration matters here because the call line multiplies these probabilities by money. Brier score ${D.meta.metrics.brier.toFixed(3)}.`;
+  } else {
+    const tr = D.optuna; if (!tr.length){ host.textContent = "Search history unavailable."; return; }
+    const lo = Math.floor(Math.min(...tr.map(t => t.auc))*100)/100, hi = Math.ceil(Math.max(...tr.map(t => t.auc))*100)/100 + 0.002;
+    const xs = v => m.l + v/(tr.length-1)*(W-m.l-m.r), ys = v => m.t + (hi-v)/(hi-lo)*(H-m.t-m.b);
+    const xt = niceTicks(0, tr.length-1, W < 520 ? 4 : 6), yt = niceTicks(lo, hi, 5);
+    axes(svg,W,H,m,xt,yt,xs,ys,v=>"#"+v,v=>v.toFixed(3),"Optuna trial (each one logged to MLflow)","validation ROC-AUC");
+    let best = -1, path = "";
+    tr.forEach((t,i) => { best = Math.max(best, t.auc); path += `${i?"L":"M"}${xs(t.trial)} ${ys(best)} `; if (i < tr.length-1) path += `L${xs(tr[i+1].trial)} ${ys(best)} `; });
+    el("path",{d:path, fill:"none", stroke:css("--stay"), "stroke-width":2}, svg);
+    const bl = el("text",{x:W-m.r,y:ys(best)-10,"text-anchor":"end","font-weight":700,fill:css("--ink-2")}, svg); bl.textContent = "best so far";
+    const maxLeaves = Math.max(...tr.map(t => t.num_leaves));
+    tr.forEach(t => { const isBest = t.trial === D.meta.optuna.best_trial;
+      el("circle",{cx:xs(t.trial),cy:ys(t.auc),r:4 + 6*t.num_leaves/maxLeaves, fill: isBest ? css("--leave") : css("--stay"), "fill-opacity": isBest ? 1 : .35, stroke: isBest ? css("--sheet") : css("--stay"), "stroke-width":1.5}, svg);
+      const hit = el("circle",{cx:xs(t.trial),cy:ys(t.auc),r:14,fill:"transparent"}, svg);
+      hit.addEventListener("mousemove", e => showTip(`Trial <b>#${t.trial}</b>${isBest?" · chosen":""}<br>AUC <b>${t.auc.toFixed(4)}</b><br>${t.num_leaves} leaves · lr ${t.learning_rate} · ${t.n_estimators} trees`, e.clientX, e.clientY));
+      hit.addEventListener("mouseleave", hideTip); });
+    $("#trust-note").textContent = `${tr.length} trials of Bayesian search (TPE). Dot size is tree complexity: the winner, in orange, is a small, heavily regularised model, which also generalises best. All hyperparameters and metrics are tracked in MLflow.`;
+  }
+}
+function gainsAt(f){ const k = Math.floor(N*f); let c = 0; for (let j=0;j<k;j++) c += T.y[order[j]]; return c/totalChurn; }
+function crosshair(svg, W, H, m, pts, x, y, fmt){
+  const line = el("line",{y1:m.t,y2:H-m.b,stroke:css("--ink-3"),"stroke-width":1,opacity:0}, svg);
+  const dot = el("circle",{r:5,fill:css("--stay"),stroke:css("--sheet"),"stroke-width":2,opacity:0}, svg);
+  const hit = el("rect",{x:m.l,y:m.t,width:W-m.l-m.r,height:H-m.t-m.b,fill:"transparent"}, svg);
+  hit.addEventListener("mousemove", e => { const r = svg.getBoundingClientRect(); const px = (e.clientX - r.left)/r.width*W;
+    const v = (px - m.l)/(W-m.l-m.r); const p = pts.reduce((a,q) => Math.abs(q[0]-v) < Math.abs(a[0]-v) ? q : a);
+    line.setAttribute("x1", x(p[0])); line.setAttribute("x2", x(p[0])); line.setAttribute("opacity", 1);
+    dot.setAttribute("cx", x(p[0])); dot.setAttribute("cy", y(p[1])); dot.setAttribute("opacity", 1);
+    showTip(fmt(p), e.clientX, e.clientY); });
+  hit.addEventListener("mouseleave", () => { line.setAttribute("opacity",0); dot.setAttribute("opacity",0); hideTip(); });
+}
+
+/* ======================================================================
+   4. Drift
+   ====================================================================== */
+let batch = "drifted", feature = "churn_score";
+$$("[data-batch]").forEach(b => b.addEventListener("click", () => { batch = b.dataset.batch;
+  $$("[data-batch]").forEach(x => x.setAttribute("aria-selected", String(x === b))); drawDrift(); }));
+function drawDrift(){
+  const S = D.drift[batch], pol = D.drift.policy;
+  $("#drift-verdict").innerHTML = S.retrain_required
+    ? `<span class="verdict-pill alert">⚠ Retraining triggered</span>` : `<span class="verdict-pill ok">✓ Stable, no action</span>`;
+  const pr = S.prediction;
+  const reasons = S.reasons.length ? S.reasons.map(r => `<li>${r.replace("prediction drift: score PSI","Predicted-risk shift: PSI").replace("features in PSI alert","features past the alert line")}</li>`).join("")
+    : `<li>No feature crossed the alert line (PSI ${pol.psi_alert}).</li>`;
+  $("#drift-reasons").innerHTML = reasons + `<li>Customers flagged: ${fmtPct(pr.ref_flag_rate)} → <b>${fmtPct(pr.cur_flag_rate)}</b></li>`;
+  const feats = [{feature:"churn_score", psi: pr.score_psi, status: pr.score_psi >= pol.score_psi_alert ? "alert" : pr.score_psi >= pol.psi_warning ? "warning" : "ok"}].concat(S.features);
+  const maxPsi = Math.max(0.3, ...feats.map(f => f.psi));
+  const colorOf = s => s === "alert" ? css("--leave") : s === "warning" ? css("--neutral") : css("--stay");
+  $("#flist").innerHTML = feats.map(f => `<li><button type="button" data-f="${f.feature}" aria-pressed="${f.feature===feature}">
+      <span>${label(f.feature)}${f.status==="alert"?" ⚠":""}</span>
+      <span class="bar"><i style="width:${Math.min(100, f.psi/maxPsi*100)}%;background:${colorOf(f.status)}"></i></span>
+      <span class="psi">${f.psi.toFixed(3)}</span></button></li>`).join("");
+  $$("#flist button").forEach(b => b.addEventListener("click", () => { feature = b.dataset.f; drawDrift(); }));
+  drawHist(S, feats.find(f => f.feature === feature));
+}
+function drawHist(S, f){
+  const h = S.hists[feature];
+  $("#hist-title").textContent = label(feature);
+  const host = $("#hist"); host.innerHTML = "";
+  const W = Math.max(300, Math.round(host.clientWidth || 720)), H = W < 520 ? 260 : 320, m={l:46,r:12,t:16,b:58};
+  const svg = el("svg",{viewBox:`0 0 ${W} ${H}`}, host);
+  const cats = h.labels || h.edges.slice(0,-1).map((e,i) => [e, h.edges[i+1]]);
+  const n = cats.length, maxV = Math.max(...h.ref, ...h.cur) * 1.12;
+  const bw = (W - m.l - m.r) / n;
+  const y = v => m.t + (1 - v/maxV) * (H - m.t - m.b);
+  const yt = niceTicks(0, maxV, 4);
+  const g = el("g",{class:"grid"}, svg);
+  yt.forEach(v => { el("line",{x1:m.l,x2:W-m.r,y1:y(v),y2:y(v)}, g); const t = el("text",{x:m.l-8,y:y(v)+4,"text-anchor":"end"}, svg); t.textContent = fmtPct(v); });
+  const isCat = !!h.labels;
+  const fmtEdge = (v) => feature === "churn_score" ? fmtPct(v) : feature.includes("charges") ? "$" + Math.round(v) : (Math.abs(v) >= 100 ? Math.round(v) : +v.toFixed(1));
+  cats.forEach((c, i) => {
+    const x0 = m.l + i*bw;
+    const inner = Math.max(2, bw - 4);
+    el("rect",{x:x0+2, y:y(h.ref[i]), width:inner, height:Math.max(0, y(0)-y(h.ref[i])), rx:Math.min(4, inner/3), fill:css("--neutral"), "fill-opacity":.55}, svg);
+    el("rect",{x:x0+2+inner*0.22, y:y(h.cur[i]), width:inner*0.56, height:Math.max(0, y(0)-y(h.cur[i])), rx:Math.min(3, inner/4), fill:css("--leave")}, svg);
+    const every = Math.ceil(n / (W < 520 ? 4 : 7));
+    if (isCat || i % every === 0){ const t = el("text",{x: isCat ? x0 + bw/2 : x0, y: H - m.b + 18, "text-anchor": isCat ? "middle" : "start"}, svg);
+      t.textContent = isCat ? (NICE[c] || c) : fmtEdge(c[0]); }
+    const hit = el("rect",{x:x0,y:m.t,width:bw,height:H-m.t-m.b,fill:"transparent"}, svg);
+    const name = isCat ? (NICE[c] || c) : `${fmtEdge(c[0])} – ${fmtEdge(c[1])}`;
+    hit.addEventListener("mousemove", e => showTip(`<b>${name}</b><br>Training: ${fmtPct(h.ref[i],1)}<br>New batch: <b>${fmtPct(h.cur[i],1)}</b>`, e.clientX, e.clientY));
+    hit.addEventListener("mouseleave", hideTip);
+  });
+  el("line",{x1:m.l,x2:W-m.r,y1:y(0),y2:y(0),class:"zero"}, svg);
+  const xl = el("text",{x:(m.l+W-m.r)/2,y:H-14,"text-anchor":"middle"}, svg); xl.textContent = "share of customers in each range";
+  const st = f.status === "alert" ? "past the alert line — this feature alone is a reason to look" : f.status === "warning" ? "worth watching" : "stable";
+  $("#hist-note").textContent = `Population Stability Index ${f.psi.toFixed(3)}: ${st}. Alert at ${D.drift.policy.psi_alert}, warning at ${D.drift.policy.psi_warning}.`;
+}
+
+/* ======================================================================
+   5. Pipeline replay
+   ====================================================================== */
+function buildSteps(){
+  const M = D.meta, G = D.gate;
+  const checks = G ? G.checks.map(c => `<li><span class="${c.passed?"ok":"no"}">${c.passed?"✓":"✗"}</span>${c.name.replace(/_/g," ")} — ${c.detail}</li>`).join("") : "";
+  const steps = [
+    ["Drift detected on a new batch", "Monitoring compares production data with the champion's own training snapshot.", "PSI alert"],
+    ["New labels ingested and validated", "Every batch must pass the data contract: types, ranges, categories, null budgets, duplicate keys.", "contract ✓"],
+    ["Leak-free split", "Customers are assigned to train/valid/test by a hash of their ID, so a past test customer never lands in training.", "60/20/20"],
+    [`Bayesian search over ${M.optuna.n_trials} trials`, "Optuna explores LightGBM hyperparameters. Every trial is a nested run in MLflow.", `AUC ${M.optuna.best_valid_roc_auc.toFixed(3)}`],
+    ["Probabilities calibrated", "Platt scaling on a separate split, so a 30% really means 30%.", `Brier ${M.metrics.brier.toFixed(3)}`],
+    ["Call line set by money", "The threshold that maximises the expected value of the retention campaign.", fmtPct(M.business.threshold)],
+    ["Quality gate against the champion", "Both models are scored on the same holdout. The challenger must clear absolute bars and not lose AUC or dollars." + (checks ? `<ul class="checks">${checks}</ul>` : ""), G ? (G.promoted ? "promoted" : "rejected") : "gate"],
+    ["Pull request opened", "A human reviews the PR; merging ships the new champion through CI, Docker smoke tests and a hot reload of the API.", "human approval"],
+  ];
+  $("#steps").innerHTML = steps.map(([h,p,v]) => `<li class="done"><div><h4>${h}</h4><p>${p}</p></div><span class="val">${v}</span></li>`).join("");
+}
+$("#replay").addEventListener("click", () => {
+  const items = $$("#steps > li"); items.forEach(li => { li.classList.remove("done"); li.classList.add("pending"); });
+  items.forEach((li, i) => setTimeout(() => { li.classList.remove("pending"); li.classList.add("done"); }, reduced ? 0 : 450 * (i + 1)));
+});
+
+/* ---------- theme ---------- */
+$("#theme").addEventListener("click", () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = dark ? "light" : "dark";
+  try { localStorage.setItem("cg-theme", root.dataset.theme); } catch(e) {}
+  redrawAll();
+});
+try { const t = localStorage.getItem("cg-theme"); if (t) document.documentElement.dataset.theme = t; } catch(e) {}
+
+function redrawAll(){ update(); refreshDecision(); drawTrust(); drawDrift(); }
+$("#f-trees").textContent = D.model.trees.length;
+$("#f-version").textContent = D.meta.version;
+setForm(customer);
+recomputeCurve();
+buildSteps();
+redrawAll();
+let rt, lastW = window.innerWidth;
+window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { if (window.innerWidth !== lastW){ lastW = window.innerWidth; redrawAll(); } }, 150); });
+// Mobile: keep the live prediction visible while editing the profile.
+if ("IntersectionObserver" in window){
+  let formVisible = false, resultVisible = false;
+  const sync = () => $("#livebar").classList.toggle("show", formVisible && !resultVisible);
+  new IntersectionObserver(es => { formVisible = es[0].isIntersecting; sync(); }, {threshold:0.05}).observe($("#customer"));
+  new IntersectionObserver(es => { resultVisible = es[0].isIntersecting; sync(); }, {threshold:0.35}).observe($(".gauge-wrap"));
+}
+$("#livebar").addEventListener("click", () => $(".sheet.result").scrollIntoView({behavior: reduced ? "auto" : "smooth", block:"start"}));
+})();
+</script>
+</body>
+</html>

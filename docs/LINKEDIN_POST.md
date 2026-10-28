@@ -20,8 +20,10 @@ Lo que hay debajo:
 
 Un detalle que me tomó tiempo y vale la pena: al reentrenar con datos nuevos, el campeón se estaba evaluando sobre clientes con los que ya había entrenado. La solución fue asignar cada cliente a train/test con un hash de su ID, para que la comparación siempre sea justa.
 
-El código está abierto 👇
-https://github.com/johnbyronA/churnguard-mlops
+Pruébalo tú mismo, el modelo corre en tu navegador 👇
+https://johnbyrona.github.io/churnguard-mlops/
+
+Código: https://github.com/johnbyronA/churnguard-mlops
 
 ¿Cómo deciden en sus equipos cuándo reentrenar un modelo?
 
@@ -49,8 +51,10 @@ Under the hood:
 
 One detail that took time and was worth it: when retraining on new data, the champion was being scored on customers it had already trained on. The fix was assigning each customer to train/test by a hash of their ID, so the comparison is always fair.
 
-The code is open 👇
-https://github.com/johnbyronA/churnguard-mlops
+Try it yourself, the model runs in your browser 👇
+https://johnbyrona.github.io/churnguard-mlops/
+
+Code: https://github.com/johnbyronA/churnguard-mlops
 
 How does your team decide when to retrain a model?
 
@@ -60,7 +64,8 @@ How does your team decide when to retrain a model?
 
 ## Suggested visuals (carousel or images)
 
-1. `reports/figures/value_curve.png` — the money chart (lead with this one)
+1. A 20–30 s screen recording of the live demo: change a customer, then drag the threshold (lead with this one)
+1. `reports/figures/value_curve.png` — the money chart
 2. The Mermaid architecture diagram (screenshot from the README on GitHub)
 3. `reports/drift_report.html` — screenshot of the "RETRAIN REQUIRED" verdict
 4. The GitHub Actions job summary with the quality-gate checklist

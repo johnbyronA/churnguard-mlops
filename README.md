@@ -8,6 +8,12 @@
 
 > **English** · [Español](#-español)
 
+### ▶ [Live interactive demo — play with the model in your browser](https://johnbyrona.github.io/churnguard-mlops/)
+
+The demo runs the real champion (all 300 LightGBM trees + calibration, exported and parity-tested against Python):
+edit a customer and watch per-feature explanations update, drag the decision threshold over 3,971 test customers,
+inspect drift between batches and replay a real quality-gate decision.
+
 Most churn projects stop at a notebook with an AUC. **ChurnGuard is the whole lifecycle**: data contracts,
 tracked hyperparameter search, calibrated probabilities, a decision threshold chosen by **money, not by 0.5**,
 a quality-gated model registry, an explainable real-time API, drift monitoring and **automated retraining**
@@ -180,6 +186,9 @@ src/churnguard/
 ├── reporting.py          figures + model card
 ├── serving/              FastAPI app + pydantic schemas
 └── pipeline.py           `churnguard` CLI
+scripts/build_site.py     exports the champion + test set into the interactive demo
+site/                     demo template, in-browser scorer and JS/Python parity test
+docs/index.html           the published demo (GitHub Pages)
 tests/                    35 unit + integration tests
 ops/                      Prometheus + Grafana provisioning
 .github/workflows/        CI and continuous training
@@ -195,6 +204,8 @@ and making drift scenarios controllable. Swapping in a real source only requires
 ---
 
 ## 🇨🇴 Español
+
+**[▶ Demo interactiva en vivo](https://johnbyrona.github.io/churnguard-mlops/)**: el modelo campeón real corre en tu navegador. Edita un cliente y mira cómo cambia la explicación de la predicción, arrastra el umbral sobre 3.971 clientes de prueba, explora el drift y repite una decisión real de la compuerta de calidad.
 
 La mayoría de proyectos de churn terminan en un notebook con un AUC. **ChurnGuard cubre el ciclo de vida completo**:
 contratos de datos, búsqueda de hiperparámetros con trazabilidad, probabilidades calibradas, un umbral de decisión
