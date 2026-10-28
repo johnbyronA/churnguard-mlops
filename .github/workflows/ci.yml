@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MLFLOW_DISABLE_AGENT_HINT: "1"
+
+jobs:
+  quality:
+    name: Lint & tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements.txt && pip install --no-deps -e .
+      - name: Lint
+        run: ruff check src tests
+      - name: Unit + integration tests
+        run: pytest --cov=churnguard --cov-report=term --cov-report=xml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.xml
+
+  train:
+    name: Train, quality gate & drift check
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements.txt && pip install --no-deps -e .
+      - name: Generate data
+        run: churnguard generate
+      - name: Validate data contract
+        run: churnguard validate data/raw/customers.csv
+      - name: Train challenger (Optuna + MLflow)
+        run: churnguard train --n-trials 20
+      - name: Quality gate vs committed champion
+        run: churnguard promote
+      - name: Simulate drifted production batch & monitor
+        run: |
+          churnguard simulate --drift
+          churnguard monitor
+      - name: Job summary
+        run: churnguard summary
+      - uses: actions/upload-artifact@v4
+        with:
+          name: model-reports
+          path: |
+            reports/
+            models/challenger/metadata.json
+            models/registry_log.jsonl
+
+  docker:
+    name: Build & smoke-test serving image
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t churnguard-api:${{ github.sha }} .
+      - name: Smoke test container
+        run: |
+          docker run -d --name api -p 8000:8000 churnguard-api:${{ github.sha }}
+          for i in $(seq 1 30); do curl -fs localhost:8000/health && break; sleep 2; done
+          curl -fs -X POST localhost:8000/predict -H 'content-type: application/json' -d '{
+            "age": 34, "city": "Medellin", "tenure_months": 4, "contract": "month-to-month",
+            "internet_service": "fiber", "num_products": 1, "monthly_charges": 112.5,
+            "total_charges": 450.0, "payment_method": "electronic_check", "paperless_billing": 1,
+            "support_tickets_90d": 4, "late_payments_12m": 2, "usage_change_pct": -28.0, "nps_score": 3
+          }' | tee prediction.json
+          python3 -c "import json; p=json.load(open('prediction.json')); assert 0 <= p['churn_probability'] <= 1"
+          docker logs api
+      - name: Push to GitHub Container Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        continue-on-error: true
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          IMAGE=ghcr.io/${{ github.repository_owner }}/churnguard-api
+          IMAGE=$(echo $IMAGE | tr '[:upper:]' '[:lower:]')
+          docker tag churnguard-api:${{ github.sha }} $IMAGE:latest
+          docker tag churnguard-api:${{ github.sha }} $IMAGE:${{ github.sha }}
+          docker push $IMAGE:latest && docker push $IMAGE:${{ github.sha }}
+    permissions:
+      contents: read
+      packages: write

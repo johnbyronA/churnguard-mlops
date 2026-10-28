@@ -1,0 +1,43 @@
+# ChurnGuard — single source of truth for every stage of the pipeline.
+# Change a value here and the whole pipeline (and CI) picks it up.
+
+seed: 42
+
+data:
+  n_customers: 20000
+  raw_path: data/raw/customers.csv
+  current_path: data/current/customers_current.csv   # "production" batch used by monitoring
+
+train:
+  valid_size: 0.2
+  test_size: 0.2
+  n_trials: 30            # Optuna trials (CI smoke runs override this)
+  calibration: sigmoid    # sigmoid | isotonic
+  experiment_name: churnguard
+  registered_model_name: churnguard-classifier
+
+# Retention-campaign economics used to pick the decision threshold.
+business:
+  offer_cost: 40.0                 # cost of one retention offer: discount + agent time (USD)
+  retention_success_rate: 0.30     # share of contacted churners who stay
+  value_horizon_months: 6          # months of revenue saved when a churner is retained
+
+# Promotion rules: a challenger only replaces the champion if it passes all of them.
+quality_gate:
+  min_roc_auc: 0.80
+  min_pr_auc: 0.55
+  max_brier: 0.18
+  max_auc_drop_vs_champion: 0.005
+
+monitoring:
+  psi_warning: 0.1
+  psi_alert: 0.2
+  ks_pvalue: 0.01
+  max_drifted_feature_share: 0.25   # retrain if more than this share of features drift
+  score_psi_alert: 0.2
+
+paths:
+  models_dir: models
+  reports_dir: reports
+  predictions_log: logs/predictions.jsonl
+  mlflow_tracking_uri: sqlite:///mlflow.db

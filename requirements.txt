@@ -1,0 +1,9 @@
+# Full training + development environment (pinned for reproducibility).
+-r requirements-serve.txt
+optuna==5.0.0
+mlflow==3.17.2
+matplotlib==3.11.2
+pytest==9.1.1
+pytest-cov
+httpx==0.28.1
+ruff==0.17.3

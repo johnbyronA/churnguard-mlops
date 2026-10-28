@@ -1,0 +1,86 @@
+name: Continuous Training
+
+# Weekly (or on demand): pull a new production batch, check drift against the
+# training reference and, only if drift crosses the alert policy, retrain on the
+# freshly labelled data. A new champion is proposed through a pull request, so a
+# human still approves what goes to production.
+
+on:
+  schedule:
+    - cron: "0 11 * * 1"   # Mondays 06:00 Bogotá
+  workflow_dispatch:
+    inputs:
+      drift:
+        description: "Simulate a drifted batch"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  MLFLOW_DISABLE_AGENT_HINT: "1"
+
+jobs:
+  monitor-and-retrain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements.txt && pip install --no-deps -e .
+
+      - name: Recreate historical training data
+        run: churnguard generate
+
+      - name: Ingest new production batch (labels arrive later)
+        run: |
+          if [ "${{ github.event.inputs.drift || 'true' }}" = "true" ]; then FLAG=--drift; fi
+          churnguard simulate $FLAG --label-feedback --n-customers 8000 --seed ${{ github.run_number }}
+
+      - name: Drift check
+        id: drift
+        run: churnguard monitor
+
+      - name: Retrain challenger
+        if: steps.drift.outputs.retrain_required == 'true'
+        run: churnguard train --n-trials 25
+
+      - name: Quality gate
+        id: gate
+        if: steps.drift.outputs.retrain_required == 'true'
+        run: churnguard promote
+
+      - name: Job summary
+        if: always()
+        run: churnguard summary
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: continuous-training-${{ github.run_number }}
+          path: |
+            reports/
+            models/registry_log.jsonl
+
+      - name: Open PR with the new champion
+        if: steps.gate.outputs.promoted == 'true'
+        continue-on-error: true   # needs "Allow GitHub Actions to create pull requests" in repo settings
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: ct/champion-${{ github.run_number }}
+          commit-message: "ct: promote retrained champion (run ${{ github.run_number }})"
+          title: "🤖 Continuous training: new champion model"
+          body: |
+            Drift was detected on the latest production batch and the retrained challenger
+            passed every quality-gate check (see the job summary for metrics and the drift report).
+            Merging this PR ships the new champion through the normal CI/CD pipeline.
+          add-paths: |
+            models/champion/**
+            reports/figures/**
+            reports/model_card.html
+            reports/drift_report.html
+            reports/metrics.json

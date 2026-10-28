@@ -1,0 +1,12 @@
+# Minimal, pinned runtime for the serving image (same versions the model was trained with).
+numpy==2.5.3
+pandas==3.0.5
+scipy==1.18.1
+scikit-learn==1.9.1
+lightgbm==4.7.0
+fastapi==0.162.0
+uvicorn[standard]==0.54.0
+pydantic==2.13.5
+prometheus-client==0.26.0
+PyYAML==6.0.3
+joblib==1.6.0

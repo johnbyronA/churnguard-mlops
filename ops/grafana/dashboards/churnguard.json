@@ -1,0 +1,41 @@
+{
+  "title": "ChurnGuard — Model in Production",
+  "uid": "churnguard",
+  "schemaVersion": 39,
+  "refresh": "10s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "type": "stat", "title": "Predictions / min", "gridPos": { "x": 0, "y": 0, "w": 6, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "sum(rate(churnguard_predictions_total[5m])) * 60", "refId": "A" }]
+    },
+    {
+      "type": "stat", "title": "p95 latency (ms)", "gridPos": { "x": 6, "y": 0, "w": 6, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "histogram_quantile(0.95, sum(rate(churnguard_request_latency_seconds_bucket[5m])) by (le)) * 1000", "refId": "A" }]
+    },
+    {
+      "type": "stat", "title": "Error rate", "gridPos": { "x": 12, "y": 0, "w": 6, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percentunit" } },
+      "targets": [{ "expr": "sum(rate(churnguard_requests_total{status!~\"2..\"}[5m])) / clamp_min(sum(rate(churnguard_requests_total[5m])), 1e-9)", "refId": "A" }]
+    },
+    {
+      "type": "stat", "title": "Share flagged high/critical", "gridPos": { "x": 18, "y": 0, "w": 6, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percentunit" } },
+      "targets": [{ "expr": "sum(rate(churnguard_predictions_total{risk_band=~\"high|critical\"}[15m])) / clamp_min(sum(rate(churnguard_predictions_total[15m])), 1e-9)", "refId": "A" }]
+    },
+    {
+      "type": "timeseries", "title": "Scored customers by risk band", "gridPos": { "x": 0, "y": 5, "w": 12, "h": 9 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "sum by (risk_band) (rate(churnguard_predictions_total[5m]))", "legendFormat": "{{risk_band}}", "refId": "A" }]
+    },
+    {
+      "type": "bargauge", "title": "Predicted churn probability distribution", "gridPos": { "x": 12, "y": 5, "w": 12, "h": 9 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "sum by (le) (increase(churnguard_churn_probability_bucket[1h]))", "legendFormat": "≤ {{le}}", "format": "heatmap", "refId": "A" }]
+    }
+  ]
+}
