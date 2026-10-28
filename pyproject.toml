@@ -44,7 +44,11 @@ filterwarnings = ["ignore::DeprecationWarning", "ignore::FutureWarning", "ignore
 [tool.ruff]
 line-length = 110
 target-version = "py311"
+src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM"]
 ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["churnguard"]
