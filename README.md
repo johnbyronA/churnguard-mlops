@@ -8,7 +8,7 @@
 
 > **English** · [Español](#-español)
 
-### ▶ [Live interactive demo — play with the model in your browser](https://johnbyrona.github.io/churnguard-mlops/)
+### ▶ [Live interactive demo (in Spanish) — play with the model in your browser](https://johnbyrona.github.io/churnguard-mlops/)
 
 The demo runs the real champion (all 300 LightGBM trees + calibration, exported and parity-tested against Python):
 edit a customer and watch per-feature explanations update, drag the decision threshold over 3,971 test customers,

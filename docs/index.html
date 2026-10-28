@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ChurnGuard — live churn model</title>
-<meta name="description" content="Play with a production churn model running in your browser: live explanations, business-optimal thresholds, drift monitoring and quality-gated retraining.">
-<meta property="og:title" content="ChurnGuard — a churn model you can play with">
-<meta property="og:description" content="The real LightGBM champion running in your browser: explanations, money-optimal thresholds, drift and continuous training.">
+<title>ChurnGuard — modelo de abandono en vivo</title>
+<meta name="description" content="Juega con un modelo de abandono de clientes en producción que corre en tu navegador: explicaciones en vivo, umbral óptimo para el negocio, monitoreo de drift y reentrenamiento con compuerta de calidad.">
+<meta property="og:title" content="ChurnGuard — un modelo de abandono con el que puedes jugar">
+<meta property="og:description" content="El modelo LightGBM campeón corriendo en tu navegador: explicaciones, umbral óptimo en dinero, drift y entrenamiento continuo.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -84,9 +84,9 @@ select{width:100%;font:inherit;font-size:15px;padding:8px 10px;border-radius:var
 
 /* verdict panel */
 @media (min-width:921px){.lab > .sheet.result{position:sticky;top:14px}}
-.verdict-top{display:grid;grid-template-columns:230px 1fr;gap:24px;align-items:center;padding-bottom:18px;border-bottom:1px solid var(--rule);margin-bottom:18px}
+.verdict-top{display:grid;grid-template-columns:260px 1fr;gap:24px;align-items:center;padding-bottom:18px;border-bottom:1px solid var(--rule);margin-bottom:18px}
 @media (max-width:560px){.verdict-top{grid-template-columns:1fr;text-align:center}}
-.gauge-wrap svg{width:100%;max-width:240px;height:auto;display:block;margin:0 auto}
+.gauge-wrap svg{width:100%;max-width:270px;height:auto;display:block;margin:0 auto}
 .band{display:inline-block;margin-top:6px;font-weight:700;font-size:14px;border-radius:999px;padding:4px 12px}
 .band.low{background:var(--stay-soft);color:var(--stay)}
 .band.medium{background:var(--well);color:var(--ink-2)}
@@ -191,74 +191,74 @@ footer .cols{display:grid;grid-template-columns:2fr 1fr;gap:24px}
 </head>
 <body>
 <div id="tip" role="status" aria-live="polite"></div>
-<button type="button" id="livebar" aria-label="Jump to the prediction"><i></i><b>–</b><span>chance of leaving</span></button>
+<button type="button" id="livebar" aria-label="Ir a la predicción"><i></i><b>–</b><span>probabilidad de irse</span></button>
 
 <header class="wrap top">
   <a class="brand" href="#">
     <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="3"/><path d="M8 18c3-6 13-6 16 0" fill="none" stroke="var(--leave)" stroke-width="3" stroke-linecap="round"/><circle cx="16" cy="19" r="3" fill="var(--stay)"/></svg>
     ChurnGuard
   </a>
-  <nav aria-label="Sections">
-    <a href="#decide">Threshold</a><a href="#trust">Model quality</a><a href="#drift">Drift</a><a href="#pipeline">Pipeline</a>
+  <nav aria-label="Secciones">
+    <a href="#decide">Umbral</a><a href="#trust">Calidad del modelo</a><a href="#drift">Drift</a><a href="#pipeline">Pipeline</a>
   </nav>
   <a class="gh" href="https://github.com/johnbyronA/churnguard-mlops">
     <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-    Source code
+    Código fuente
   </a>
 </header>
 
 <main>
 <section class="wrap hero" aria-labelledby="hero-title">
-  <h1 id="hero-title">Will this customer leave?</h1>
-  <p class="lede">This is the production churn model, running in your browser. Change the customer and watch every
-  feature pull the prediction towards <span style="color:var(--stay);font-weight:700">staying</span> or
-  <span style="color:var(--leave);font-weight:700">leaving</span>. Same trees, same calibration, same answer as the API.</p>
+  <h1 id="hero-title">¿Se irá este cliente?</h1>
+  <p class="lede">Este es el modelo de abandono de producción, corriendo en tu navegador. Cambia el cliente y mira cómo cada
+  variable empuja la predicción hacia <span style="color:var(--stay);font-weight:700">quedarse</span> o
+  <span style="color:var(--leave);font-weight:700">irse</span>. Mismos árboles, misma calibración, misma respuesta que la API.</p>
 
   <div class="lab">
-    <form class="sheet file" id="customer" onsubmit="return false" aria-label="Customer profile">
-      <h2>Customer profile</h2>
-      <p class="hint">Start from a preset or a real customer from the test set.</p>
+    <form class="sheet file" id="customer" onsubmit="return false" aria-label="Perfil del cliente">
+      <h2>Perfil del cliente</h2>
+      <p class="hint">Empieza con un perfil de ejemplo o con un cliente real del conjunto de prueba.</p>
       <div class="presets">
-        <button type="button" class="btn primary" id="random">Random real customer</button>
-        <button type="button" class="btn" data-preset="risky">At-risk</button>
-        <button type="button" class="btn" data-preset="loyal">Loyal</button>
+        <button type="button" class="btn primary" id="random">Cliente real al azar</button>
+        <button type="button" class="btn" data-preset="risky">En riesgo</button>
+        <button type="button" class="btn" data-preset="loyal">Leal</button>
       </div>
 
-      <div class="field"><span class="lbl" id="l-contract">Contract</span>
+      <div class="field"><span class="lbl" id="l-contract">Contrato</span>
         <div class="seg" role="group" aria-labelledby="l-contract" data-name="contract">
-          <button type="button" data-v="month-to-month">Monthly</button><button type="button" data-v="one-year">1 year</button><button type="button" data-v="two-year">2 years</button>
+          <button type="button" data-v="month-to-month">Mensual</button><button type="button" data-v="one-year">1 año</button><button type="button" data-v="two-year">2 años</button>
         </div></div>
       <div class="field"><span class="lbl" id="l-internet">Internet</span>
         <div class="seg" role="group" aria-labelledby="l-internet" data-name="internet_service">
-          <button type="button" data-v="fiber">Fiber</button><button type="button" data-v="dsl">DSL</button><button type="button" data-v="none">None</button>
+          <button type="button" data-v="fiber">Fibra</button><button type="button" data-v="dsl">DSL</button><button type="button" data-v="none">Ninguno</button>
         </div></div>
-      <div class="field"><label for="tenure_months">Months as a customer <output id="o-tenure_months"></output></label><input type="range" id="tenure_months" min="0" max="72" step="1"></div>
-      <div class="field"><label for="monthly_charges">Monthly bill <output id="o-monthly_charges"></output></label><input type="range" id="monthly_charges" min="15" max="160" step="0.5"></div>
-      <div class="field"><label for="usage_change_pct">Usage change, last 3 months <output id="o-usage_change_pct"></output></label><input type="range" id="usage_change_pct" min="-60" max="60" step="1"></div>
+      <div class="field"><label for="tenure_months">Antigüedad <output id="o-tenure_months"></output></label><input type="range" id="tenure_months" min="0" max="72" step="1"></div>
+      <div class="field"><label for="monthly_charges">Factura mensual <output id="o-monthly_charges"></output></label><input type="range" id="monthly_charges" min="15" max="160" step="0.5"></div>
+      <div class="field"><label for="usage_change_pct">Cambio en el uso, últimos 3 meses <output id="o-usage_change_pct"></output></label><input type="range" id="usage_change_pct" min="-60" max="60" step="1"></div>
       <div class="two">
-        <div class="field"><label for="support_tickets_90d">Support tickets <output id="o-support_tickets_90d"></output></label><input type="range" id="support_tickets_90d" min="0" max="10" step="1"></div>
-        <div class="field"><label for="late_payments_12m">Late payments <output id="o-late_payments_12m"></output></label><input type="range" id="late_payments_12m" min="0" max="8" step="1"></div>
+        <div class="field"><label for="support_tickets_90d">Tickets de soporte <output id="o-support_tickets_90d"></output></label><input type="range" id="support_tickets_90d" min="0" max="10" step="1"></div>
+        <div class="field"><label for="late_payments_12m">Pagos atrasados <output id="o-late_payments_12m"></output></label><input type="range" id="late_payments_12m" min="0" max="8" step="1"></div>
       </div>
       <div class="two">
-        <div class="field"><label for="num_products">Products <output id="o-num_products"></output></label><input type="range" id="num_products" min="1" max="6" step="1"></div>
-        <div class="field"><label for="age">Age <output id="o-age"></output></label><input type="range" id="age" min="18" max="85" step="1"></div>
+        <div class="field"><label for="num_products">Productos <output id="o-num_products"></output></label><input type="range" id="num_products" min="1" max="6" step="1"></div>
+        <div class="field"><label for="age">Edad <output id="o-age"></output></label><input type="range" id="age" min="18" max="85" step="1"></div>
       </div>
-      <div class="field"><label for="nps_score">Satisfaction (NPS 0–10) <output id="o-nps_score"></output></label><input type="range" id="nps_score" min="0" max="10" step="1">
-        <label class="check"><input type="checkbox" id="nps_missing"> Didn't answer the survey</label></div>
+      <div class="field"><label for="nps_score">Satisfacción (NPS 0–10) <output id="o-nps_score"></output></label><input type="range" id="nps_score" min="0" max="10" step="1">
+        <label class="check"><input type="checkbox" id="nps_missing"> No respondió la encuesta</label></div>
       <div class="two">
-        <div class="field"><label for="payment_method">Payment</label><select id="payment_method">
-          <option value="electronic_check">Electronic check</option><option value="credit_card">Credit card</option><option value="bank_transfer">Bank transfer</option><option value="cash">Cash</option></select></div>
-        <div class="field"><label for="city">City</label><select id="city">
-          <option>Medellin</option><option>Bogota</option><option>Cali</option><option>Barranquilla</option><option>Cartagena</option><option>Bucaramanga</option></select></div>
+        <div class="field"><label for="payment_method">Medio de pago</label><select id="payment_method">
+          <option value="electronic_check">Cheque electrónico</option><option value="credit_card">Tarjeta de crédito</option><option value="bank_transfer">Transferencia</option><option value="cash">Efectivo</option></select></div>
+        <div class="field"><label for="city">Ciudad</label><select id="city">
+          <option value="Medellin">Medellín</option><option value="Bogota">Bogotá</option><option>Cali</option><option>Barranquilla</option><option>Cartagena</option><option>Bucaramanga</option></select></div>
       </div>
-      <label class="check"><input type="checkbox" id="paperless_billing"> Paperless billing</label>
+      <label class="check"><input type="checkbox" id="paperless_billing"> Factura electrónica</label>
     </form>
 
     <div class="sheet result">
       <div class="verdict">
         <div class="verdict-top">
           <div class="gauge-wrap">
-            <svg id="gauge" viewBox="0 0 260 150" role="img" aria-labelledby="gauge-label"></svg>
+            <svg id="gauge" viewBox="0 0 300 186" role="img" aria-labelledby="gauge-label"></svg>
             <div id="gauge-label" class="sr"></div>
           </div>
           <div>
@@ -268,9 +268,9 @@ footer .cols{display:grid;grid-template-columns:2fr 1fr;gap:24px}
           </div>
         </div>
         <div class="tug" id="tug-panel">
-          <h3>Why the model thinks so</h3>
-          <p class="sub" id="tug-sub">Each bar is how much one feature moves this customer's churn odds, from the model's own tree splits.</p>
-          <div class="tug-legend"><span class="l">← keeps them</span><span class="r">pushes them out →</span></div>
+          <h3>Por qué lo cree el modelo</h3>
+          <p class="sub" id="tug-sub">Cada barra muestra cuánto mueve una variable las probabilidades de que este cliente se vaya, según las divisiones de los propios árboles del modelo.</p>
+          <div class="tug-legend"><span class="l">← lo retiene</span><span class="r">lo empuja a irse →</span></div>
           <div id="tug" aria-live="polite"></div>
         </div>
       </div>
@@ -281,31 +281,31 @@ footer .cols{display:grid;grid-template-columns:2fr 1fr;gap:24px}
 <section class="chapter" id="decide" aria-labelledby="decide-title">
   <div class="wrap">
     <div class="chapter-head">
-      <h2 id="decide-title">A score is not a decision</h2>
-      <p>Retention offers cost money. Set the economics, then drag the line: who do we call? Every square below is one of the
-      <b class="num" id="n-test"></b> customers the model never saw during training.</p>
+      <h2 id="decide-title">Un puntaje no es una decisión</h2>
+      <p>Las ofertas de retención cuestan dinero. Ajusta la economía de la campaña y arrastra la línea: ¿a quién llamamos? Cada cuadrito
+      de abajo es uno de los <b class="num" id="n-test"></b> clientes que el modelo nunca vio durante el entrenamiento.</p>
     </div>
     <div class="decide">
       <div class="sheet">
-        <div class="field"><label for="offer">Cost of one retention offer <output id="o-offer"></output></label><input type="range" id="offer" min="5" max="120" step="1"></div>
-        <div class="field"><label for="success">Churners who accept the offer and stay <output id="o-success"></output></label><input type="range" id="success" min="0.05" max="0.8" step="0.01"></div>
-        <div class="field"><label for="horizon">Months of revenue saved per retained customer <output id="o-horizon"></output></label><input type="range" id="horizon" min="1" max="24" step="1"></div>
-        <div class="field"><label for="thr">Call everyone above this churn risk <output id="o-thr"></output></label><input type="range" id="thr" min="0.02" max="0.98" step="0.01"></div>
-        <button type="button" class="btn primary" id="snap" style="width:100%">Find the most profitable threshold</button>
+        <div class="field"><label for="offer">Costo de una oferta de retención <output id="o-offer"></output></label><input type="range" id="offer" min="5" max="120" step="1"></div>
+        <div class="field"><label for="success">Clientes en riesgo que aceptan la oferta y se quedan <output id="o-success"></output></label><input type="range" id="success" min="0.05" max="0.8" step="0.01"></div>
+        <div class="field"><label for="horizon">Meses de ingreso que salva cada cliente retenido <output id="o-horizon"></output></label><input type="range" id="horizon" min="1" max="24" step="1"></div>
+        <div class="field"><label for="thr">Llamar a todos por encima de este riesgo <output id="o-thr"></output></label><input type="range" id="thr" min="0.02" max="0.98" step="0.01"></div>
+        <button type="button" class="btn primary" id="snap" style="width:100%">Encontrar el umbral más rentable</button>
         <div class="compare" id="compare"></div>
       </div>
       <div class="sheet">
         <div class="kpis">
-          <div class="kpi"><span>Campaign net value</span><b id="k-value"></b><small id="k-value-sub"></small></div>
-          <div class="kpi"><span>Customers contacted</span><b id="k-contact"></b><small id="k-contact-sub"></small></div>
-          <div class="kpi"><span>Churners reached</span><b id="k-recall"></b><small id="k-recall-sub"></small></div>
+          <div class="kpi"><span>Valor neto de la campaña</span><b id="k-value"></b><small id="k-value-sub"></small></div>
+          <div class="kpi"><span>Clientes contactados</span><b id="k-contact"></b><small id="k-contact-sub"></small></div>
+          <div class="kpi"><span>Desertores alcanzados</span><b id="k-recall"></b><small id="k-recall-sub"></small></div>
         </div>
-        <div class="chart" id="value-chart" aria-label="Net campaign value by threshold"></div>
+        <div class="chart" id="value-chart" aria-label="Valor neto de la campaña según el umbral"></div>
         <div class="units-head">
-          <h3>Every test customer, riskiest first</h3>
+          <h3>Todos los clientes de prueba, del más riesgoso al menos</h3>
           <div class="legend" id="unit-legend"></div>
         </div>
-        <canvas id="units" height="260" aria-label="Unit chart of test customers by outcome"></canvas>
+        <canvas id="units" height="260" aria-label="Gráfico de unidades de los clientes de prueba según el resultado"></canvas>
       </div>
     </div>
   </div>
@@ -314,14 +314,14 @@ footer .cols{display:grid;grid-template-columns:2fr 1fr;gap:24px}
 <section class="chapter" id="trust" aria-labelledby="trust-title">
   <div class="wrap">
     <div class="chapter-head">
-      <h2 id="trust-title">Can you trust the numbers?</h2>
-      <p>Ranking power, honest probabilities and a tracked search for the model itself. Hover any chart to read exact values.</p>
+      <h2 id="trust-title">¿Puedes confiar en los números?</h2>
+      <p>Capacidad de priorizar, probabilidades honestas y una búsqueda trazable del propio modelo. Pasa el cursor sobre cualquier gráfica para ver los valores exactos.</p>
     </div>
     <div class="sheet">
-      <div class="tabs" role="tablist" aria-label="Model quality views">
-        <button role="tab" aria-selected="true" data-tab="gains">Who it catches</button>
-        <button role="tab" aria-selected="false" data-tab="calib">Are the probabilities honest?</button>
-        <button role="tab" aria-selected="false" data-tab="optuna">How the model was found</button>
+      <div class="tabs" role="tablist" aria-label="Vistas de calidad del modelo">
+        <button role="tab" aria-selected="true" data-tab="gains">A quién detecta</button>
+        <button role="tab" aria-selected="false" data-tab="calib">¿Son honestas las probabilidades?</button>
+        <button role="tab" aria-selected="false" data-tab="optuna">Cómo se encontró el modelo</button>
       </div>
       <div class="chart" id="trust-chart"></div>
       <p class="panel-note" id="trust-note"></p>
@@ -332,24 +332,24 @@ footer .cols{display:grid;grid-template-columns:2fr 1fr;gap:24px}
 <section class="chapter" id="drift" aria-labelledby="drift-title">
   <div class="wrap">
     <div class="chapter-head">
-      <h2 id="drift-title">When the world changes, the model notices</h2>
-      <p>Compare a new production batch with the data the champion learned from. Switch to the batch after a price increase and a
-      service incident, then pick any feature to see how its distribution moved.</p>
+      <h2 id="drift-title">Cuando el mundo cambia, el modelo lo nota</h2>
+      <p>Compara un lote nuevo de producción con los datos con los que aprendió el campeón. Cambia al lote posterior a una subida de
+      precio y una falla del servicio, y elige cualquier variable para ver cómo se movió su distribución.</p>
     </div>
     <div class="drift">
       <div class="sheet">
-        <div class="tabs" role="tablist" aria-label="Production batch">
-          <button role="tab" aria-selected="false" data-batch="stable">Normal week</button>
-          <button role="tab" aria-selected="true" data-batch="drifted">After price increase</button>
+        <div class="tabs" role="tablist" aria-label="Lote de producción">
+          <button role="tab" aria-selected="false" data-batch="stable">Semana normal</button>
+          <button role="tab" aria-selected="true" data-batch="drifted">Tras la subida de precio</button>
         </div>
         <div id="drift-verdict"></div>
         <ul class="reasons" id="drift-reasons"></ul>
-        <ul class="flist" id="flist" aria-label="Features by stability index"></ul>
+        <ul class="flist" id="flist" aria-label="Variables según su índice de estabilidad"></ul>
       </div>
       <div class="sheet result">
         <div class="units-head" style="margin-top:0">
           <h3 id="hist-title"></h3>
-          <div class="legend"><span><i style="background:var(--neutral)"></i>Training reference</span><span><i style="background:var(--leave)"></i>New batch</span></div>
+          <div class="legend"><span><i style="background:var(--neutral)"></i>Referencia de entrenamiento</span><span><i style="background:var(--leave)"></i>Lote nuevo</span></div>
         </div>
         <div class="chart" id="hist"></div>
         <p class="panel-note" id="hist-note"></p>
@@ -361,11 +361,11 @@ footer .cols{display:grid;grid-template-columns:2fr 1fr;gap:24px}
 <section class="chapter" id="pipeline" aria-labelledby="pipe-title">
   <div class="wrap">
     <div class="chapter-head">
-      <h2 id="pipe-title">How a model earns production</h2>
-      <p>The steps a retrained model goes through before it can replace the current champion. The values are from a real
-      continuous-training run.</p>
+      <h2 id="pipe-title">Cómo un modelo se gana la producción</h2>
+      <p>Los pasos por los que pasa un modelo reentrenado antes de poder reemplazar al campeón actual. Los valores vienen de una
+      ejecución real de entrenamiento continuo.</p>
     </div>
-    <div style="margin-bottom:14px"><button type="button" class="btn primary" id="replay">Replay the last retraining</button></div>
+    <div style="margin-bottom:14px"><button type="button" class="btn primary" id="replay">Repetir el último reentrenamiento</button></div>
     <ol class="steps" id="steps"></ol>
   </div>
 </section>
@@ -374,15 +374,15 @@ footer .cols{display:grid;grid-template-columns:2fr 1fr;gap:24px}
 <footer>
   <div class="wrap cols">
     <div>
-      <p style="margin-top:0"><b>ChurnGuard</b> is an end-to-end MLOps project by <b>John Byron Alzate Hernández</b>, Medellín.
-      The page above runs the exported champion: <span id="f-trees" class="num"></span> LightGBM trees, the training medians and
-      category layout, and the Platt calibration. A parity test in CI checks it reproduces the Python probabilities, with a maximum error below 0.000001.</p>
+      <p style="margin-top:0"><b>ChurnGuard</b> es un proyecto de MLOps de punta a punta de <b>John Byron Alzate Hernández</b>, Medellín.
+      Esta página ejecuta el campeón exportado: <span id="f-trees" class="num"></span> árboles de LightGBM, las medianas y categorías
+      del entrenamiento, y la calibración de Platt. Una prueba de paridad en CI verifica que reproduce las probabilidades de Python, con un error máximo inferior a 0,000001.</p>
       <div class="stack"><span>LightGBM</span><span>Optuna</span><span>MLflow</span><span>scikit-learn</span><span>FastAPI</span><span>Docker</span><span>Prometheus</span><span>Grafana</span><span>GitHub Actions</span></div>
     </div>
     <div>
-      <p style="margin-top:0"><a href="https://github.com/johnbyronA/churnguard-mlops">Source code and docs on GitHub</a><br>
-      Model <span id="f-version" class="num"></span><br>Synthetic data, no real customers.</p>
-      <button class="theme-toggle" id="theme" type="button">Switch theme</button>
+      <p style="margin-top:0"><a href="https://github.com/johnbyronA/churnguard-mlops">Código y documentación en GitHub</a><br>
+      Modelo <span id="f-version" class="num"></span><br>Datos sintéticos, sin clientes reales.</p>
+      <button class="theme-toggle" id="theme" type="button">Cambiar tema</button>
     </div>
   </div>
 </footer>
@@ -486,8 +486,10 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const NS = "http://www.w3.org/2000/svg";
 const el = (tag, attrs={}, parent) => { const e=document.createElementNS(NS,tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
-const fmtMoney = (v) => (v<0?"−$":"$") + Math.abs(Math.round(v)).toLocaleString("en-US");
-const fmtPct = (v, d=0) => (v*100).toFixed(d) + "%";
+const LOC = "es-CO";
+const fmtInt = (v) => Math.round(v).toLocaleString(LOC);
+const fmtMoney = (v) => (v<0?"−$":"$") + Math.abs(Math.round(v)).toLocaleString(LOC);
+const fmtPct = (v, d=0) => (v*100).toFixed(d).replace(".", ",") + "%";
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ---------- tooltip ---------- */
@@ -499,35 +501,36 @@ function showTip(html, x, y){ tip.innerHTML = html; tip.style.opacity = 1;
 function hideTip(){ tip.style.opacity = 0; }
 
 const LABELS = {
-  tenure_months:"Months as customer", contract:"Contract", usage_change_pct:"Usage change",
-  tickets_per_tenure_year:"Support tickets per year", charge_per_product:"Bill per product",
-  nps_score:"Satisfaction", late_payments_12m:"Late payments", monthly_charges:"Monthly bill",
-  internet_service:"Internet", payment_method:"Payment method", avg_charge_per_month:"Average monthly spend",
-  age:"Age", support_tickets_90d:"Support tickets (90d)", num_products:"Products", total_charges:"Total billed",
-  paperless_billing:"Paperless billing", city:"City", is_new_customer:"New customer",
-  nps_missing:"Skipped survey", engagement_drop:"Usage dropped >15%", churn_score:"Predicted churn risk"
+  tenure_months:"Antigüedad", contract:"Contrato", usage_change_pct:"Cambio en el uso",
+  tickets_per_tenure_year:"Tickets de soporte por año", charge_per_product:"Factura por producto",
+  nps_score:"Satisfacción", late_payments_12m:"Pagos atrasados", monthly_charges:"Factura mensual",
+  internet_service:"Internet", payment_method:"Medio de pago", avg_charge_per_month:"Gasto mensual promedio",
+  age:"Edad", support_tickets_90d:"Tickets (90 días)", num_products:"Productos", total_charges:"Total facturado",
+  paperless_billing:"Factura electrónica", city:"Ciudad", is_new_customer:"Cliente nuevo",
+  nps_missing:"No respondió la encuesta", engagement_drop:"Uso cayó más de 15%", churn_score:"Riesgo estimado"
 };
 const label = (f) => LABELS[f] || f.replace(/_/g," ");
-const NICE = {"month-to-month":"monthly","one-year":"1 year","two-year":"2 years","electronic_check":"electronic check",
-  "credit_card":"credit card","bank_transfer":"bank transfer","fiber":"fiber","dsl":"DSL","none":"none"};
+const NICE = {"month-to-month":"mensual","one-year":"1 año","two-year":"2 años","electronic_check":"cheque electrónico",
+  "credit_card":"tarjeta de crédito","bank_transfer":"transferencia","cash":"efectivo","fiber":"fibra","dsl":"DSL","none":"ninguno",
+  "Medellin":"Medellín","Bogota":"Bogotá"};
 function valueText(f, v){
-  if (v == null) return "no answer";
+  if (v == null) return "sin respuesta";
   if (typeof v === "string") return NICE[v] || v;
   switch(f){
-    case "monthly_charges": case "charge_per_product": case "avg_charge_per_month": case "total_charges": return "$" + Math.round(v).toLocaleString("en-US");
+    case "monthly_charges": case "charge_per_product": case "avg_charge_per_month": case "total_charges": return "$" + Math.round(v).toLocaleString(LOC);
     case "usage_change_pct": return (v>0?"+":"") + Math.round(v) + "%";
-    case "tickets_per_tenure_year": return v.toFixed(1);
-    case "paperless_billing": case "is_new_customer": case "nps_missing": case "engagement_drop": return v ? "yes" : "no";
-    case "tenure_months": return v + (v===1?" month":" months");
-    default: return Number.isInteger(v) ? String(v) : v.toFixed(1);
+    case "tickets_per_tenure_year": return v.toFixed(1).replace(".", ",");
+    case "paperless_billing": case "is_new_customer": case "nps_missing": case "engagement_drop": return v ? "sí" : "no";
+    case "tenure_months": return v + (v===1?" mes":" meses");
+    default: return Number.isInteger(v) ? String(v) : v.toFixed(1).replace(".", ",");
   }
 }
 
 /* ---------- business logic (mirrors churnguard/business.py) ---------- */
 function riskBand(p, t){ if (p >= Math.max(t*1.8, 0.6)) return "critical"; if (p >= t) return "high"; if (p >= t*0.6) return "medium"; return "low"; }
 function action(band, mc){
-  return {critical:"Priority retention call within 24h" + (mc >= 90 ? " + loyalty discount" : ""),
-          high:"Send a personalised retention offer", medium:"Add to the proactive engagement flow", low:"No action, keep monitoring"}[band];
+  return {critical:"Llamada prioritaria de retención en 24 h" + (mc >= 90 ? " + descuento de fidelidad" : ""),
+          high:"Enviar una oferta de retención personalizada", medium:"Incluir en el flujo de fidelización proactiva", low:"Sin acción, seguir monitoreando"}[band];
 }
 
 /* ======================================================================
@@ -574,23 +577,30 @@ $("#random").addEventListener("click", () => {
 
 /* gauge */
 function drawGauge(p){
+  // Fixed geometry with a margin on every side, so the arc, the tick and the
+  // labels always stay inside the viewBox whatever the font or screen.
   const g = $("#gauge"); g.innerHTML = "";
-  const cx=130, cy=128, r=104, sw=22;
+  const W = 300, H = 186, cx = W/2, cy = 150, r = 112, sw = 18;
+  g.setAttribute("viewBox", `0 0 ${W} ${H}`);
   const ang = (v) => Math.PI * (1 - v);
   const pt = (v, rr=r) => [cx + rr*Math.cos(ang(v)), cy - rr*Math.sin(ang(v))];
-  const arc = (a,b,color) => { const [x1,y1]=pt(a), [x2,y2]=pt(b);
-    el("path",{d:`M${x1} ${y1} A${r} ${r} 0 ${b-a>0.5?1:0} 1 ${x2} ${y2}`, fill:"none", stroke:color, "stroke-width":sw, "stroke-linecap":"butt"}, g); };
+  const arc = (a, b, color) => { const [x1,y1] = pt(a), [x2,y2] = pt(b);
+    el("path",{d:`M${x1.toFixed(2)} ${y1.toFixed(2)} A${r} ${r} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`, fill:"none", stroke:color, "stroke-width":sw, "stroke-linecap":"round"}, g); };
   arc(0, 1, css("--well"));
-  arc(0, Math.max(0.002, p), p >= THR ? css("--leave") : css("--stay"));
-  const [tx1,ty1] = pt(THR, r - sw/2 - 6), [tx2,ty2] = pt(THR, r + sw/2 + 6);
-  el("line",{x1:tx1,y1:ty1,x2:tx2,y2:ty2,stroke:css("--ink"),"stroke-width":2.5}, g);
-  const [lx,ly] = pt(THR, r - sw/2 - 14);
-  const tl = el("text",{x:lx+4,y:ly+4,"text-anchor":"start","font-size":11,fill:css("--ink-3"),"font-family":"Schibsted Grotesk, sans-serif"}, g); tl.textContent = "call line";
-  const t = el("text",{x:cx,y:cy-12,"text-anchor":"middle","font-family":"Bricolage Grotesque, sans-serif","font-weight":800,"font-size":54,fill:css("--ink"),"letter-spacing":"-2"}, g);
+  if (p > 0.004) arc(0, Math.min(p, 0.999), p >= THR ? css("--leave") : css("--stay"));
+  // threshold tick, just outside the arc, with its label beside it
+  const [tx1,ty1] = pt(THR, r - sw/2 - 2), [tx2,ty2] = pt(THR, r + sw/2 + 7);
+  el("line",{x1:tx1,y1:ty1,x2:tx2,y2:ty2,stroke:css("--ink"),"stroke-width":2.5,"stroke-linecap":"round"}, g);
+  const tl = el("text",{x:cx, y:cy + 26, "text-anchor":"middle", "font-size":12, "font-weight":600, fill:css("--ink-2"), "font-family":"Schibsted Grotesk, sans-serif"}, g);
+  tl.textContent = "▲ línea de llamada: " + Math.round(THR*100) + "%";
+  // scale ends
+  [[0,"0%"],[1,"100%"]].forEach(([v,txt]) => { const [ex] = pt(v);
+    const e = el("text",{x:ex, y:cy + 26, "text-anchor":"middle", "font-size":12, fill:css("--ink-3"), "font-family":"Schibsted Grotesk, sans-serif"}, g); e.textContent = txt; });
+  const t = el("text",{x:cx, y:cy - 22, "text-anchor":"middle", "font-family":"Bricolage Grotesque, sans-serif", "font-weight":800, "font-size":50, fill:css("--ink"), "letter-spacing":"-1.5"}, g);
   t.textContent = Math.round(p*100) + "%";
-  const s = el("text",{x:cx,y:cy+10,"text-anchor":"middle","font-size":13,fill:css("--ink-3"),"font-family":"Schibsted Grotesk, sans-serif"}, g);
-  s.textContent = "chance of leaving";
-  $("#gauge-label").textContent = `Predicted churn probability ${Math.round(p*100)} percent`;
+  const sub = el("text",{x:cx, y:cy + 4, "text-anchor":"middle", "font-size":13.5, fill:css("--ink-3"), "font-family":"Schibsted Grotesk, sans-serif"}, g);
+  sub.textContent = "probabilidad de irse";
+  $("#gauge-label").textContent = `Probabilidad estimada de abandono: ${Math.round(p*100)} por ciento`;
 }
 
 /* tug of war */
@@ -604,7 +614,7 @@ function drawTug(res){
   const rowH = narrow ? 46 : 38, H = top.length * rowH + 8, mid = W/2;
   const maxAbs = Math.max(0.6, ...top.map(([,v]) => Math.abs(v)));
   const sc = (narrow ? mid - 8 : mid - 160) / maxAbs;
-  const svg = el("svg",{viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":"Feature contributions"}, host);
+  const svg = el("svg",{viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":"Contribución de cada variable"}, host);
   if (!narrow) el("line",{x1:mid,y1:0,x2:mid,y2:H,stroke:css("--rule"),"stroke-width":2}, svg);
   top.forEach(([f,v], i) => {
     const y = i*rowH + 6, w = Math.max(2, Math.abs(v)*sc), up = v > 0;
@@ -613,7 +623,7 @@ function drawTug(res){
     if (narrow) el("line",{x1:mid,y1:barY-3,x2:mid,y2:barY+17,stroke:css("--rule"),"stroke-width":2}, svg);
     const r = el("rect",{x, y:barY, width:w, height: narrow ? 14 : 18, rx:4, fill: up ? css("--leave") : css("--stay")}, svg);
     if (!reduced){ r.setAttribute("width", 0); if (!up) r.setAttribute("x", mid-1); requestAnimationFrame(() => { r.style.transition="width .35s ease, x .35s ease"; r.setAttribute("width", w); r.setAttribute("x", x); }); }
-    const name = f === "__rest" ? "Everything else" : label(f);
+    const name = f === "__rest" ? "Todo lo demás" : label(f);
     const val = f === "__rest" ? "" : valueText(f, res.values[f]);
     if (narrow){
       const nt = el("text",{x: 2, y:y+16, "text-anchor":"start", "font-size":13.5, "font-weight":600, fill:css("--ink")}, svg);
@@ -628,7 +638,7 @@ function drawTug(res){
     }
     const odds = Math.exp(Math.abs(v));
     const hit = el("rect",{x:0,y:y,width:W,height:rowH,fill:"transparent"}, svg);
-    hit.addEventListener("mousemove", e => showTip(`<b>${name}</b>${val?" = "+val:""}<br>${up?"Raises":"Lowers"} churn odds ×${odds.toFixed(2)}<br>(${v>0?"+":""}${v.toFixed(3)} log-odds)`, e.clientX, e.clientY));
+    hit.addEventListener("mousemove", e => showTip(`<b>${name}</b>${val?" = "+val:""}<br>${up?"Multiplica":"Divide"} las probabilidades de irse por ${odds.toFixed(2).replace(".", ",")}<br>(${v>0?"+":""}${v.toFixed(3).replace(".", ",")} log-odds)`, e.clientX, e.clientY));
     hit.addEventListener("mouseleave", hideTip);
   });
 }
@@ -638,20 +648,21 @@ function update(){
   const res = scorer.score(customer, true);
   const p = res.p, band = riskBand(p, THR);
   drawGauge(p);
-  const b = $("#band"); b.className = "band " + band; b.textContent = band[0].toUpperCase() + band.slice(1) + " risk";
+  const BAND_ES = {low:"Riesgo bajo", medium:"Riesgo medio", high:"Riesgo alto", critical:"Riesgo crítico"};
+  const b = $("#band"); b.className = "band " + band; b.textContent = BAND_ES[band];
   const mc = +customer.monthly_charges;
   const ev = p * D.economics.success * mc * D.economics.horizon - D.economics.offer_cost;
-  $("#action").innerHTML = `<b>${action(band, mc)}.</b><br>Expected value of an offer: <b class="${ev>=0?"pos":"neg"} num">${fmtMoney(ev)}</b>`;
+  $("#action").innerHTML = `<b>${action(band, mc)}.</b><br>Valor esperado de hacerle una oferta: <b class="${ev>=0?"pos":"neg"} num">${fmtMoney(ev)}</b>`;
   drawTug(res);
   const lb = $("#livebar"); $("b", lb).textContent = Math.round(p*100) + "%";
   $("i", lb).style.background = p >= THR ? css("--leave") : css("--stay");
-  $("span", lb).textContent = band[0].toUpperCase() + band.slice(1) + " risk";
+  $("span", lb).textContent = BAND_ES[band];
   const tr = $("#truth");
-  if (!truth) tr.innerHTML = `<span>Tip: load a <b>random real customer</b> and guess before you reveal what happened.</span>`;
-  else if (!truth.revealed) { tr.innerHTML = `<button type="button" id="reveal">Reveal what this customer actually did</button>`;
+  if (!truth) tr.innerHTML = `<span>Consejo: carga un <b>cliente real al azar</b> y adivina antes de revelar qué pasó.</span>`;
+  else if (!truth.revealed) { tr.innerHTML = `<button type="button" id="reveal">Revelar qué hizo realmente este cliente</button>`;
     $("#reveal").onclick = () => { truth.revealed = true; update(); }; }
   else { const right = (p >= THR) === !!truth.churn;
-    tr.innerHTML = `They <b>${truth.churn ? "left" : "stayed"}</b>. The model ${right ? "got it right" : "missed this one"} — it's right about ${fmtPct(1 - errorRate(), 0)} of the time at this line.`; }
+    tr.innerHTML = `Este cliente <b>${truth.churn ? "se fue" : "se quedó"}</b>. El modelo ${right ? "acertó" : "falló en este caso"}: con esta línea acierta en cerca del ${fmtPct(1 - errorRate(), 0)} de los casos.`; }
 }
 function errorRate(){ let e=0; const {y,p} = D.test; for (let i=0;i<y.length;i++) if ((p[i]>=THR) !== !!y[i]) e++; return e / y.length; }
 
@@ -662,7 +673,7 @@ const T = D.test, N = T.y.length;
 const order = Array.from({length:N}, (_,i) => i).sort((a,b) => T.p[b] - T.p[a]);
 const econ = {offer: D.economics.offer_cost, success: D.economics.success, horizon: D.economics.horizon};
 let thr = D.meta.business.threshold;
-$("#n-test").textContent = N.toLocaleString("en-US");
+$("#n-test").textContent = fmtInt(N);
 
 function netValue(t){
   let v = 0, contacted = 0, caught = 0;
@@ -688,14 +699,14 @@ function drawValueChart(){
   ticks.forEach(tv => { el("line",{x1:m.l,x2:W-m.r,y1:y(tv),y2:y(tv)}, grid);
     const tt = el("text",{x:m.l-8,y:y(tv)+4,"text-anchor":"end"}, svg); tt.textContent = shortMoney(tv); });
   [0,0.25,0.5,0.75,1].forEach(tv => { const tt = el("text",{x:x(tv),y:H-14,"text-anchor": tv===0?"start":tv===1?"end":"middle"}, svg); tt.textContent = fmtPct(tv); });
-  const xl = el("text",{x:W-m.r,y:H-0,"text-anchor":"end"}, svg); xl.textContent = "call line (churn risk)";
+  const xl = el("text",{x:W-m.r,y:H-0,"text-anchor":"end"}, svg); xl.textContent = "línea de llamada (riesgo de abandono)";
   el("line",{x1:m.l,x2:W-m.r,y1:y(0),y2:y(0),class:"zero"}, svg);
   const d = curve.map((c,i) => `${i?"L":"M"}${x(c.t).toFixed(1)} ${y(c.v).toFixed(1)}`).join(" ");
   el("path",{d:`${d} L${x(curve[curve.length-1].t)} ${y(0)} L${x(curve[0].t)} ${y(0)} Z`, fill:css("--stay-soft"), opacity:.7}, svg);
   el("path",{d, fill:"none", stroke:css("--stay"), "stroke-width":2.5, "stroke-linejoin":"round"}, svg);
   const bt = bestThr(), bv = curve.find(c => c.t === bt).v;
   el("circle",{cx:x(bt), cy:y(bv), r:5, fill:css("--sheet"), stroke:css("--stay"), "stroke-width":2.5}, svg);
-  const bl = el("text",{x:x(bt), y:y(bv)-12, "text-anchor":"middle", "font-weight":700, fill:css("--ink-2")}, svg); bl.textContent = "most profitable";
+  const bl = el("text",{x:x(bt), y:y(bv)-12, "text-anchor":"middle", "font-weight":700, fill:css("--ink-2")}, svg); bl.textContent = "más rentable";
   // draggable current line
   const cur = curve.reduce((a,c) => Math.abs(c.t-thr) < Math.abs(a.t-thr) ? c : a);
   const g = el("g",{style:"cursor:ew-resize"}, svg);
@@ -708,7 +719,7 @@ function drawValueChart(){
   hit.addEventListener("pointerdown", e => { dragging = true; hit.setPointerCapture(e.pointerId); setThr(toT(e)); });
   hit.addEventListener("pointermove", e => { const t = toT(e); const c = curve.find(q => q.t === t) || cur;
     if (dragging) setThr(t);
-    showTip(`Call line <b>${fmtPct(t)}</b><br>Net value <b>${fmtMoney(c.v)}</b><br>${c.contacted.toLocaleString("en-US")} calls · ${c.caught} churners reached`, e.clientX, e.clientY); });
+    showTip(`Línea de llamada <b>${fmtPct(t)}</b><br>Valor neto <b>${fmtMoney(c.v)}</b><br>${fmtInt(c.contacted)} llamadas, ${fmtInt(c.caught)} desertores alcanzados`, e.clientX, e.clientY); });
   hit.addEventListener("pointerup", () => { dragging = false; });
   hit.addEventListener("pointerleave", hideTip);
   host.dataset.contactAll = contactAll;
@@ -716,15 +727,15 @@ function drawValueChart(){
 function niceTicks(lo, hi, n){ const span = hi - lo; const step0 = span / n; const mag = Math.pow(10, Math.floor(Math.log10(step0)));
   const step = [1,2,2.5,5,10].map(s => s*mag).find(s => span / s <= n) || mag*10;
   const out = []; for (let v = Math.ceil(lo/step)*step; v <= hi + 1e-9; v += step) out.push(+v.toFixed(6)); return out; }
-function shortMoney(v){ const a = Math.abs(v); const s = a >= 1000 ? (a/1000).toFixed(a>=10000?0:1).replace(/\.0$/,"") + "k" : Math.round(a); return (v<0?"−$":"$") + s; }
+function shortMoney(v){ const a = Math.abs(v); const s = a >= 1000 ? (a/1000).toFixed(a>=10000?0:1).replace(/\.0$/,"").replace(".", ",") + " mil" : Math.round(a); return (v<0?"−$":"$") + s; }
 
 /* unit chart */
 const unitCanvas = $("#units");
 const UNIT_KEYS = [
-  {k:"saved", name:"Churners we call", color:() => css("--leave")},
-  {k:"missed", name:"Churners we miss", color:() => css("--leave-soft")},
-  {k:"wasted", name:"Calls to loyal customers", color:() => css("--stay")},
-  {k:"quiet", name:"Loyal, not called", color:() => css("--well")},
+  {k:"saved", name:"Desertores que llamamos", color:() => css("--leave")},
+  {k:"missed", name:"Desertores que no llamamos", color:() => css("--leave-soft")},
+  {k:"wasted", name:"Llamadas a clientes leales", color:() => css("--stay")},
+  {k:"quiet", name:"Leales, sin llamar", color:() => css("--well")},
 ];
 function unitKind(i){ const called = T.p[i] >= thr, churn = !!T.y[i]; return churn ? (called ? "saved" : "missed") : (called ? "wasted" : "quiet"); }
 let unitLayout = null;
@@ -745,32 +756,32 @@ function drawUnits(){
     if (ctx.roundRect) ctx.roundRect(c*step, r*step, cell, cell, 1.5); else ctx.rect(c*step, r*step, cell, cell);
     ctx.fill(); });
   unitLayout = {step, cols};
-  $("#unit-legend").innerHTML = UNIT_KEYS.map(u => `<span><i style="background:${colors[u.k]};${u.k==="quiet"?"outline:1px solid var(--rule)":""}"></i>${u.name} <b class="num">${counts[u.k].toLocaleString("en-US")}</b></span>`).join("");
+  $("#unit-legend").innerHTML = UNIT_KEYS.map(u => `<span><i style="background:${colors[u.k]};${u.k==="quiet"?"outline:1px solid var(--rule)":""}"></i>${u.name} <b class="num">${fmtInt(counts[u.k])}</b></span>`).join("");
 }
 unitCanvas.addEventListener("mousemove", e => { if (!unitLayout) return; const r = unitCanvas.getBoundingClientRect();
   const c = Math.floor((e.clientX - r.left) / unitLayout.step), row = Math.floor((e.clientY - r.top) / unitLayout.step);
   const j = row * unitLayout.cols + c; if (c >= unitLayout.cols || j < 0 || j >= N) return hideTip();
   const i = order[j]; const kind = UNIT_KEYS.find(u => u.k === unitKind(i));
-  showTip(`Risk rank <b>#${j+1}</b> · predicted <b>${fmtPct(T.p[i],1)}</b><br>Monthly bill $${Math.round(T.mc[i])} · actually <b>${T.y[i]?"left":"stayed"}</b><br>${kind.name}`, e.clientX, e.clientY); });
+  showTip(`Puesto de riesgo <b>#${fmtInt(j+1)}</b>, estimado <b>${fmtPct(T.p[i],1)}</b><br>Factura mensual $${Math.round(T.mc[i])}, realmente <b>${T.y[i]?"se fue":"se quedó"}</b><br>${kind.name}`, e.clientX, e.clientY); });
 unitCanvas.addEventListener("mouseleave", hideTip);
 
 function refreshDecision(){
   $("#o-offer").textContent = "$" + econ.offer;
   $("#o-success").textContent = fmtPct(econ.success);
-  $("#o-horizon").textContent = econ.horizon + (econ.horizon === 1 ? " month" : " months");
+  $("#o-horizon").textContent = econ.horizon + (econ.horizon === 1 ? " mes" : " meses");
   $("#o-thr").textContent = fmtPct(thr);
   $("#thr").value = thr;
   const now = netValue(thr), naive = netValue(0.5), all = netValue(0);
   const best = curve.find(c => c.t === bestThr());
   $("#k-value").textContent = fmtMoney(now.v); $("#k-value").className = "num " + (now.v >= 0 ? "pos" : "neg");
-  $("#k-value-sub").textContent = best.t === thr ? "the best this model can do here"
-    : thr === D.meta.business.threshold ? `line chosen on validation data; ${fmtMoney(best.v - now.v)} short of the test optimum` : `${fmtMoney(best.v - now.v)} left on the table`;
-  $("#k-contact").textContent = now.contacted.toLocaleString("en-US");
-  $("#k-contact-sub").textContent = fmtPct(now.contacted / N) + " of customers";
+  $("#k-value-sub").textContent = best.t === thr ? "lo mejor que puede lograr este modelo aquí"
+    : thr === D.meta.business.threshold ? `línea elegida con datos de validación; ${fmtMoney(best.v - now.v)} por debajo del óptimo en prueba` : `se dejan de ganar ${fmtMoney(best.v - now.v)}`;
+  $("#k-contact").textContent = fmtInt(now.contacted);
+  $("#k-contact-sub").textContent = fmtPct(now.contacted / N) + " de los clientes";
   $("#k-recall").textContent = fmtPct(now.caught / totalChurn);
-  $("#k-recall-sub").textContent = `${now.caught} of ${totalChurn}, ${now.contacted ? fmtPct(now.caught/now.contacted) : "–"} of calls hit`;
+  $("#k-recall-sub").textContent = `${fmtInt(now.caught)} de ${fmtInt(totalChurn)}; ${now.contacted ? fmtPct(now.caught/now.contacted) : "–"} de las llamadas aciertan`;
   $("#compare").innerHTML = [
-    ["Call everyone", all.v], ["Model, default 50% line", naive.v], [`Model, most profitable (${fmtPct(best.t)})`, best.v]
+    ["Llamar a todos", all.v], ["Modelo, línea por defecto de 50%", naive.v], [`Modelo, la más rentable (${fmtPct(best.t)})`, best.v]
   ].map(([n,v]) => `<div><span>${n}</span><b class="${v>=0?"pos":"neg"}">${fmtMoney(v)}</b></div>`).join("");
   drawValueChart(); drawUnits();
   if (currentTab === "gains") drawTrust();
@@ -807,17 +818,17 @@ function drawTrust(){
   if (currentTab === "gains"){
     const pts = [[0,0]]; let caught = 0;
     order.forEach((i, j) => { caught += T.y[i]; if ((j+1) % 20 === 0 || j === N-1) pts.push([(j+1)/N, caught/totalChurn]); });
-    axes(svg,W,H,m,pctTicks,pctTicks,x01,y01,v=>fmtPct(v),v=>fmtPct(v),"customers contacted, riskiest first","churners reached");
+    axes(svg,W,H,m,pctTicks,pctTicks,x01,y01,v=>fmtPct(v),v=>fmtPct(v),"clientes contactados, empezando por los más riesgosos","desertores alcanzados");
     el("line",{x1:x01(0),y1:y01(0),x2:x01(1),y2:y01(1),stroke:css("--neutral"),"stroke-dasharray":"5 5","stroke-width":1.5}, svg);
-    const rl = el("text",{x:x01(0.82),y:y01(0.82)+20,fill:css("--ink-3"),"text-anchor":"middle"}, svg); rl.textContent = "random calling";
+    const rl = el("text",{x:x01(0.82),y:y01(0.82)+20,fill:css("--ink-3"),"text-anchor":"middle"}, svg); rl.textContent = "llamar al azar";
     const d = pts.map((p,i) => `${i?"L":"M"}${x01(p[0]).toFixed(1)} ${y01(p[1]).toFixed(1)}`).join(" ");
     el("path",{d, fill:"none", stroke:css("--stay"), "stroke-width":2.5}, svg);
     const now = netValue(thr); const cx = now.contacted / N, cy = now.caught / totalChurn;
     el("line",{x1:x01(cx),x2:x01(cx),y1:y01(0),y2:y01(cy),stroke:css("--leave"),"stroke-width":1.5,"stroke-dasharray":"3 3"}, svg);
     el("circle",{cx:x01(cx),cy:y01(cy),r:6,fill:css("--leave"),stroke:css("--sheet"),"stroke-width":2}, svg);
-    const lt = el("text",{x:x01(cx)+10,y:y01(cy)+18,fill:css("--ink"),"font-weight":700,"text-anchor": cx > 0.6 ? "end" : "start"}, svg); lt.textContent = `your call line: ${fmtPct(cx)} → ${fmtPct(cy)}`;
-    crosshair(svg, W, H, m, pts, x01, y01, p => `Contact top <b>${fmtPct(p[0])}</b><br>Reach <b>${fmtPct(p[1])}</b> of churners<br>Lift ×${(p[1]/Math.max(p[0],1e-9)).toFixed(2)}`);
-    $("#trust-note").textContent = `Calling the riskiest 10% reaches ${fmtPct(gainsAt(0.1))} of everyone who leaves, ${(gainsAt(0.1)/0.1).toFixed(1)}× better than calling at random. The orange dot follows the call line you set above. ROC-AUC ${D.meta.metrics.roc_auc.toFixed(3)}.`;
+    const lt = el("text",{x:x01(cx)+10,y:y01(cy)+18,fill:css("--ink"),"font-weight":700,"text-anchor": cx > 0.6 ? "end" : "start"}, svg); lt.textContent = `tu línea: ${fmtPct(cx)} → ${fmtPct(cy)}`;
+    crosshair(svg, W, H, m, pts, x01, y01, p => `Contactar al <b>${fmtPct(p[0])}</b> más riesgoso<br>Alcanza el <b>${fmtPct(p[1])}</b> de los desertores<br>Lift ×${(p[1]/Math.max(p[0],1e-9)).toFixed(2).replace(".", ",")}`);
+    $("#trust-note").textContent = `Llamar al 10% más riesgoso alcanza al ${fmtPct(gainsAt(0.1))} de todos los que se van: ${(gainsAt(0.1)/0.1).toFixed(1).replace(".", ",")} veces mejor que llamar al azar. El punto naranja sigue la línea que fijaste arriba. ROC-AUC ${D.meta.metrics.roc_auc.toFixed(3).replace(".", ",")}.`;
   } else if (currentTab === "calib"){
     const idx = Array.from({length:N}, (_,i) => i).sort((a,b) => T.p[a] - T.p[b]);
     const bins = 10, pts = [];
@@ -826,32 +837,32 @@ function drawTrust(){
     const top = Math.min(1, Math.ceil(Math.max(...pts.map(p => Math.max(p[0],p[1])))*10)/10 + 0.1);
     const xs = v => m.l + v/top*(W-m.l-m.r), ys = v => m.t + (1-v/top)*(H-m.t-m.b);
     const tk = niceTicks(0, top, 5);
-    axes(svg,W,H,m,tk,tk,xs,ys,v=>fmtPct(v),v=>fmtPct(v),"predicted churn risk (10 groups of equal size)","share that actually left");
+    axes(svg,W,H,m,tk,tk,xs,ys,v=>fmtPct(v),v=>fmtPct(v),"riesgo estimado (10 grupos del mismo tamaño)","proporción que realmente se fue");
     el("line",{x1:xs(0),y1:ys(0),x2:xs(top),y2:ys(top),stroke:css("--neutral"),"stroke-dasharray":"5 5","stroke-width":1.5}, svg);
-    const pl = el("text",{x:xs(top*0.72)+6,y:ys(top*0.72)-8,fill:css("--ink-3")}, svg); pl.textContent = "perfectly honest";
+    const pl = el("text",{x:xs(top*0.72)+6,y:ys(top*0.72)-8,fill:css("--ink-3")}, svg); pl.textContent = "perfectamente honesto";
     el("path",{d:pts.map((p,i) => `${i?"L":"M"}${xs(p[0])} ${ys(p[1])}`).join(" "), fill:"none", stroke:css("--stay"), "stroke-width":2}, svg);
     pts.forEach(p => { const c = el("circle",{cx:xs(p[0]),cy:ys(p[1]),r:7,fill:css("--stay"),stroke:css("--sheet"),"stroke-width":2}, svg);
       const hit = el("circle",{cx:xs(p[0]),cy:ys(p[1]),r:16,fill:"transparent"}, svg);
-      hit.addEventListener("mousemove", e => showTip(`${p[2]} customers<br>Model said <b>${fmtPct(p[0],1)}</b><br>Actually left <b>${fmtPct(p[1],1)}</b>`, e.clientX, e.clientY));
+      hit.addEventListener("mousemove", e => showTip(`${fmtInt(p[2])} clientes<br>El modelo dijo <b>${fmtPct(p[0],1)}</b><br>Realmente se fue el <b>${fmtPct(p[1],1)}</b>`, e.clientX, e.clientY));
       hit.addEventListener("mouseleave", hideTip); });
-    $("#trust-note").textContent = `When the model says 30%, about 30% leave. Calibration matters here because the call line multiplies these probabilities by money. Brier score ${D.meta.metrics.brier.toFixed(3)}.`;
+    $("#trust-note").textContent = `Cuando el modelo dice 30%, se va cerca del 30%. La calibración importa porque la línea de llamada multiplica estas probabilidades por dinero. Brier ${D.meta.metrics.brier.toFixed(3).replace(".", ",")}.`;
   } else {
-    const tr = D.optuna; if (!tr.length){ host.textContent = "Search history unavailable."; return; }
+    const tr = D.optuna; if (!tr.length){ host.textContent = "Historial de búsqueda no disponible."; return; }
     const lo = Math.floor(Math.min(...tr.map(t => t.auc))*100)/100, hi = Math.ceil(Math.max(...tr.map(t => t.auc))*100)/100 + 0.002;
     const xs = v => m.l + v/(tr.length-1)*(W-m.l-m.r), ys = v => m.t + (hi-v)/(hi-lo)*(H-m.t-m.b);
     const xt = niceTicks(0, tr.length-1, W < 520 ? 4 : 6), yt = niceTicks(lo, hi, 5);
-    axes(svg,W,H,m,xt,yt,xs,ys,v=>"#"+v,v=>v.toFixed(3),"Optuna trial (each one logged to MLflow)","validation ROC-AUC");
+    axes(svg,W,H,m,xt,yt,xs,ys,v=>"#"+v,v=>v.toFixed(3).replace(".", ","),"trial de Optuna (cada uno registrado en MLflow)","ROC-AUC en validación");
     let best = -1, path = "";
     tr.forEach((t,i) => { best = Math.max(best, t.auc); path += `${i?"L":"M"}${xs(t.trial)} ${ys(best)} `; if (i < tr.length-1) path += `L${xs(tr[i+1].trial)} ${ys(best)} `; });
     el("path",{d:path, fill:"none", stroke:css("--stay"), "stroke-width":2}, svg);
-    const bl = el("text",{x:W-m.r,y:ys(best)-10,"text-anchor":"end","font-weight":700,fill:css("--ink-2")}, svg); bl.textContent = "best so far";
+    const bl = el("text",{x:W-m.r,y:ys(best)-10,"text-anchor":"end","font-weight":700,fill:css("--ink-2")}, svg); bl.textContent = "mejor hasta ahora";
     const maxLeaves = Math.max(...tr.map(t => t.num_leaves));
     tr.forEach(t => { const isBest = t.trial === D.meta.optuna.best_trial;
       el("circle",{cx:xs(t.trial),cy:ys(t.auc),r:4 + 6*t.num_leaves/maxLeaves, fill: isBest ? css("--leave") : css("--stay"), "fill-opacity": isBest ? 1 : .35, stroke: isBest ? css("--sheet") : css("--stay"), "stroke-width":1.5}, svg);
       const hit = el("circle",{cx:xs(t.trial),cy:ys(t.auc),r:14,fill:"transparent"}, svg);
-      hit.addEventListener("mousemove", e => showTip(`Trial <b>#${t.trial}</b>${isBest?" · chosen":""}<br>AUC <b>${t.auc.toFixed(4)}</b><br>${t.num_leaves} leaves · lr ${t.learning_rate} · ${t.n_estimators} trees`, e.clientX, e.clientY));
+      hit.addEventListener("mousemove", e => showTip(`Trial <b>#${t.trial}</b>${isBest?", el elegido":""}<br>AUC <b>${t.auc.toFixed(4).replace(".", ",")}</b><br>${t.num_leaves} hojas, tasa de aprendizaje ${String(t.learning_rate).replace(".", ",")}, ${t.n_estimators} árboles`, e.clientX, e.clientY));
       hit.addEventListener("mouseleave", hideTip); });
-    $("#trust-note").textContent = `${tr.length} trials of Bayesian search (TPE). Dot size is tree complexity: the winner, in orange, is a small, heavily regularised model, which also generalises best. All hyperparameters and metrics are tracked in MLflow.`;
+    $("#trust-note").textContent = `${tr.length} trials de búsqueda bayesiana (TPE). El tamaño del punto indica la complejidad de los árboles: el ganador, en naranja, es un modelo pequeño y muy regularizado, que además es el que mejor generaliza. Todos los hiperparámetros y métricas quedan registrados en MLflow.`;
   }
 }
 function gainsAt(f){ const k = Math.floor(N*f); let c = 0; for (let j=0;j<k;j++) c += T.y[order[j]]; return c/totalChurn; }
@@ -876,18 +887,21 @@ $$("[data-batch]").forEach(b => b.addEventListener("click", () => { batch = b.da
 function drawDrift(){
   const S = D.drift[batch], pol = D.drift.policy;
   $("#drift-verdict").innerHTML = S.retrain_required
-    ? `<span class="verdict-pill alert">⚠ Retraining triggered</span>` : `<span class="verdict-pill ok">✓ Stable, no action</span>`;
+    ? `<span class="verdict-pill alert">⚠ Se activa el reentrenamiento</span>` : `<span class="verdict-pill ok">✓ Estable, sin acción</span>`;
   const pr = S.prediction;
-  const reasons = S.reasons.length ? S.reasons.map(r => `<li>${r.replace("prediction drift: score PSI","Predicted-risk shift: PSI").replace("features in PSI alert","features past the alert line")}</li>`).join("")
-    : `<li>No feature crossed the alert line (PSI ${pol.psi_alert}).</li>`;
-  $("#drift-reasons").innerHTML = reasons + `<li>Customers flagged: ${fmtPct(pr.ref_flag_rate)} → <b>${fmtPct(pr.cur_flag_rate)}</b></li>`;
+  const nAlert = S.features.filter(f => f.status === "alert").length;
+  const reasons = [];
+  if (pr.score_psi >= pol.score_psi_alert) reasons.push(`<li>El riesgo estimado se desplazó: PSI ${pr.score_psi.toFixed(3).replace(".", ",")}, por encima de ${String(pol.score_psi_alert).replace(".", ",")}</li>`);
+  if (nAlert) reasons.push(`<li>${nAlert} de ${S.features.length} variables superan la línea de alerta</li>`);
+  if (!reasons.length) reasons.push(`<li>Ninguna variable superó la línea de alerta (PSI ${String(pol.psi_alert).replace(".", ",")}).</li>`);
+  $("#drift-reasons").innerHTML = reasons.join("") + `<li>Clientes marcados en riesgo: ${fmtPct(pr.ref_flag_rate)} → <b>${fmtPct(pr.cur_flag_rate)}</b></li>`;
   const feats = [{feature:"churn_score", psi: pr.score_psi, status: pr.score_psi >= pol.score_psi_alert ? "alert" : pr.score_psi >= pol.psi_warning ? "warning" : "ok"}].concat(S.features);
   const maxPsi = Math.max(0.3, ...feats.map(f => f.psi));
   const colorOf = s => s === "alert" ? css("--leave") : s === "warning" ? css("--neutral") : css("--stay");
   $("#flist").innerHTML = feats.map(f => `<li><button type="button" data-f="${f.feature}" aria-pressed="${f.feature===feature}">
       <span>${label(f.feature)}${f.status==="alert"?" ⚠":""}</span>
       <span class="bar"><i style="width:${Math.min(100, f.psi/maxPsi*100)}%;background:${colorOf(f.status)}"></i></span>
-      <span class="psi">${f.psi.toFixed(3)}</span></button></li>`).join("");
+      <span class="psi">${f.psi.toFixed(3).replace(".", ",")}</span></button></li>`).join("");
   $$("#flist button").forEach(b => b.addEventListener("click", () => { feature = b.dataset.f; drawDrift(); }));
   drawHist(S, feats.find(f => f.feature === feature));
 }
@@ -916,13 +930,13 @@ function drawHist(S, f){
       t.textContent = isCat ? (NICE[c] || c) : fmtEdge(c[0]); }
     const hit = el("rect",{x:x0,y:m.t,width:bw,height:H-m.t-m.b,fill:"transparent"}, svg);
     const name = isCat ? (NICE[c] || c) : `${fmtEdge(c[0])} – ${fmtEdge(c[1])}`;
-    hit.addEventListener("mousemove", e => showTip(`<b>${name}</b><br>Training: ${fmtPct(h.ref[i],1)}<br>New batch: <b>${fmtPct(h.cur[i],1)}</b>`, e.clientX, e.clientY));
+    hit.addEventListener("mousemove", e => showTip(`<b>${name}</b><br>Entrenamiento: ${fmtPct(h.ref[i],1)}<br>Lote nuevo: <b>${fmtPct(h.cur[i],1)}</b>`, e.clientX, e.clientY));
     hit.addEventListener("mouseleave", hideTip);
   });
   el("line",{x1:m.l,x2:W-m.r,y1:y(0),y2:y(0),class:"zero"}, svg);
-  const xl = el("text",{x:(m.l+W-m.r)/2,y:H-14,"text-anchor":"middle"}, svg); xl.textContent = "share of customers in each range";
-  const st = f.status === "alert" ? "past the alert line — this feature alone is a reason to look" : f.status === "warning" ? "worth watching" : "stable";
-  $("#hist-note").textContent = `Population Stability Index ${f.psi.toFixed(3)}: ${st}. Alert at ${D.drift.policy.psi_alert}, warning at ${D.drift.policy.psi_warning}.`;
+  const xl = el("text",{x:(m.l+W-m.r)/2,y:H-14,"text-anchor":"middle"}, svg); xl.textContent = "proporción de clientes en cada rango";
+  const st = f.status === "alert" ? "supera la línea de alerta; esta variable sola ya amerita revisión" : f.status === "warning" ? "vale la pena vigilarla" : "estable";
+  $("#hist-note").textContent = `Índice de estabilidad poblacional (PSI) ${f.psi.toFixed(3).replace(".", ",")}: ${st}. Alerta desde ${String(D.drift.policy.psi_alert).replace(".", ",")}, advertencia desde ${String(D.drift.policy.psi_warning).replace(".", ",")}.`;
 }
 
 /* ======================================================================
@@ -930,16 +944,20 @@ function drawHist(S, f){
    ====================================================================== */
 function buildSteps(){
   const M = D.meta, G = D.gate;
-  const checks = G ? G.checks.map(c => `<li><span class="${c.passed?"ok":"no"}">${c.passed?"✓":"✗"}</span>${c.name.replace(/_/g," ")} — ${c.detail}</li>`).join("") : "";
+  const CHECK_ES = {min_roc_auc:"ROC-AUC mínimo", min_pr_auc:"PR-AUC mínimo", max_brier:"Brier máximo",
+    no_regression_vs_champion:"Sin retroceso frente al campeón", business_value_vs_champion:"Valor de negocio frente al campeón", manual_override:"Aprobación manual"};
+  const detailEs = (d) => d.replace("same holdout","mismo holdout").replace("historical","histórico").replace(" vs champion "," frente al campeón ")
+    .replace("(champion ","(campeón ").replace("(2% tolerance)","(tolerancia de 2%)").replace(/(\d)\.(\d)/g,"$1,$2").replace(/\$(\d{1,3}),(\d{3})/g,"$$$1.$2");
+  const checks = G ? G.checks.map(c => `<li><span class="${c.passed?"ok":"no"}">${c.passed?"✓":"✗"}</span>${CHECK_ES[c.name] || c.name}: ${detailEs(c.detail)}</li>`).join("") : "";
   const steps = [
-    ["Drift detected on a new batch", "Monitoring compares production data with the champion's own training snapshot.", "PSI alert"],
-    ["New labels ingested and validated", "Every batch must pass the data contract: types, ranges, categories, null budgets, duplicate keys.", "contract ✓"],
-    ["Leak-free split", "Customers are assigned to train/valid/test by a hash of their ID, so a past test customer never lands in training.", "60/20/20"],
-    [`Bayesian search over ${M.optuna.n_trials} trials`, "Optuna explores LightGBM hyperparameters. Every trial is a nested run in MLflow.", `AUC ${M.optuna.best_valid_roc_auc.toFixed(3)}`],
-    ["Probabilities calibrated", "Platt scaling on a separate split, so a 30% really means 30%.", `Brier ${M.metrics.brier.toFixed(3)}`],
-    ["Call line set by money", "The threshold that maximises the expected value of the retention campaign.", fmtPct(M.business.threshold)],
-    ["Quality gate against the champion", "Both models are scored on the same holdout. The challenger must clear absolute bars and not lose AUC or dollars." + (checks ? `<ul class="checks">${checks}</ul>` : ""), G ? (G.promoted ? "promoted" : "rejected") : "gate"],
-    ["Pull request opened", "A human reviews the PR; merging ships the new champion through CI, Docker smoke tests and a hot reload of the API.", "human approval"],
+    ["Drift detectado en un lote nuevo", "El monitoreo compara los datos de producción con la foto de entrenamiento del propio campeón.", "alerta de PSI"],
+    ["Etiquetas nuevas ingeridas y validadas", "Cada lote debe cumplir el contrato de datos: tipos, rangos, categorías, presupuesto de nulos y llaves duplicadas.", "contrato ✓"],
+    ["Partición sin fugas", "Cada cliente va a train, valid o test según un hash de su ID, así un cliente de prueba nunca termina en el entrenamiento.", "60/20/20"],
+    [`Búsqueda bayesiana en ${M.optuna.n_trials} trials`, "Optuna explora los hiperparámetros de LightGBM. Cada trial es un run anidado en MLflow.", `AUC ${M.optuna.best_valid_roc_auc.toFixed(3).replace(".", ",")}`],
+    ["Probabilidades calibradas", "Escalamiento de Platt en una partición aparte, para que un 30% signifique de verdad 30%.", `Brier ${M.metrics.brier.toFixed(3).replace(".", ",")}`],
+    ["Línea de llamada definida por dinero", "El umbral que maximiza el valor esperado de la campaña de retención.", fmtPct(M.business.threshold)],
+    ["Compuerta de calidad frente al campeón", "Ambos modelos se evalúan en el mismo holdout. El retador debe superar mínimos absolutos y no perder AUC ni dinero." + (checks ? `<ul class="checks">${checks}</ul>` : ""), G ? (G.promoted ? "promovido" : "rechazado") : "compuerta"],
+    ["Pull request abierto", "Una persona revisa el PR; al aprobarlo, el nuevo campeón pasa por CI, pruebas de humo en Docker y una recarga en caliente de la API.", "aprobación humana"],
   ];
   $("#steps").innerHTML = steps.map(([h,p,v]) => `<li class="done"><div><h4>${h}</h4><p>${p}</p></div><span class="val">${v}</span></li>`).join("");
 }
